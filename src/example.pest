@@ -1,0 +1,62 @@
+group = {"\"group\":" ~ ("[" ~ component ~ ("," ~ component)* ~ "]" | component*) }
+
+
+
+engine_group = {"\"engineGroup\":" ~ ("[" ~ component ~ ("," ~ component)* ~ "]" | component*) }
+node_material = {"\"nodeMaterial\":" ~ physical_material }
+
+physical_material = _{ "\"|NM_" ~ ASCII_ALPHA_UPPER+ ~ "\"" }
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "    " }
+
+component = {"\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+
+
+
+number = @{
+    "-"?
+    ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+    ~ ("." ~ ASCII_DIGIT*)?
+    ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+}
+string = ${ "\"" ~ inner ~ "\"" }
+inner = @{ char* }
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
+self_collision = {"\"selfCollision\":" ~ ( "true" | "false" ) }
+collision = {"\"collision\":" ~ ( "true" | "false" ) }
+
+node_weight = { "\"nodeWeight\":" ~ number }
+
+modifier = _{ group | engine_group | node_material | collision | self_collision | node_weight }
+
+modifiers = _{ (modifier)* ~ ("," ~ (modifier))* }
+
+
+
+node = { "[\"" ~
+	(ASCII_DIGIT | ASCII_ALPHA)+ ~ "\"" ~
+    "," ~
+	(ASCII_DIGIT | ".")+ ~
+    "," ~
+    (ASCII_DIGIT | ".")+ ~
+    "," ~
+    (ASCII_DIGIT | ".")+ ~
+    ","
+    
+	
+}
+
+other_pair = { string ~ ":" ~ (string | number) ~ ","? }
+
+modifier_list = _{
+	"{" ~ "}" |
+    "{" ~ (modifier | other_pair) ~ (modifier | other_pair)* ~ "}" 
+
+}
+
+root = _{ (modifier)* ~ ("," ~ (modifier))* }

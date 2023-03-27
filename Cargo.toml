@@ -1,0 +1,16 @@
+[package]
+name = "jbeam_utils"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dae-parser = "0.8.8"
+pest = "2.5.6"
+pest_derive = "2.5.6"
+rayon = "1.7.0"
+regex = "1.7.1"
+rfd = "0.11.2"
+three-d = { version = "0.14.1", features = ["egui", "egui-gui"] }
+three-d-asset = { version = "0.4.0", features = ["wavefront_obj", "obj", "jpeg"] }
