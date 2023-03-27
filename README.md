@@ -16,4 +16,11 @@ Installing this project currently requires [Rust's cargo tool-chain](https://www
 	 - [ ] parse engines
 - [ ] Fix material editor
 - [ ] GUI to load models
-- [ ] ...
+- [ ] Remove unused code
+## Screenshots
+Note: These screenshots are from older versions of the program. Changes to things may have been made.
+![](https://cdn.discordapp.com/attachments/714429950765301791/1087391362544050216/image.png)
+![](https://cdn.discordapp.com/attachments/714429950765301791/1087391362908966922/image.png)
+![](https://cdn.discordapp.com/attachments/714429950765301791/1087391363299024967/image.png)
+![](https://cdn.discordapp.com/attachments/714429950765301791/1083595063516479508/image.png)
+![](https://cdn.discordapp.com/attachments/714429950765301791/1083595063759732806/image.png)![](https://cdn.discordapp.com/attachments/710083235995975762/1085615521380175952/image.png)
