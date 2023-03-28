@@ -621,6 +621,19 @@ fn main() {
                             }
                         }
 
+                        if ui.button("Delete connected beams").clicked() {
+                            if node_selected {
+
+                                let flag_id = &nodes[node_selected_index].id;
+
+                                // remove beams connected to node
+                                beams.retain(|beam| beam.id1 != *flag_id && beam.id2 != *flag_id);
+
+
+                            }
+                        }
+
+
                         if ui.button("Generate Created Beams").clicked() {
                             jbeam::write_user_created_beams(&beams);
                         }
