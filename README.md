@@ -10,7 +10,7 @@ Installing this project currently requires [Rust's cargo tool-chain](https://www
  3. `cargo run --release`
 
 ## TODO:
-
+ - [ ] add the ability to select beams without having to manually select individual nodes
  - [ ] fix jbeam parser
 	 - [ ] parse triangles
 	 - [ ] parse engines
