@@ -38,7 +38,7 @@ quote = _{ "\"" }
 // jbeam files can contain multiple parts
 // we know an object is a part if it has an information object
 
-part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | torsionbars | nodes | beams }
+part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | torsionbars | nodes | beams | triangles }
 
 part = { string ~ ":" ~ "{" ~ information ~ part_values* ~ "}"}
 
@@ -258,5 +258,25 @@ beam_beam_long_bound = { quote ~ "beamLongBound" ~ quote ~ ":" ~ (number | quote
 beam_beam_short_bound = { quote ~ "beamShortBound" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
 beam_disable_mesh_breaking = { quote ~ "disableMeshBreaking" ~ quote ~ ":" ~ boolean }
 beam_disable_triangle_breaking = { quote ~ "disableTriangleBreaking" ~ quote ~ ":" ~ boolean }
+
+// triangles object
+
+triangles = { quote ~ "triangles" ~ quote ~ ":" ~ "[" ~ (triangle | triangle_modifiers)* ~ "]" }
+
+triangle = { "[" ~ string ~ string ~ string ~ triangle_modifiers? ~ "]" }
+
+triangle_modifiers = { "{" ~ triangle_modifier+ ~ "}" }
+
+triangle_modifier = {
+    triangle_ground_model |
+    triangle_drag_coef |
+    triangle_group    
+}
+
+triangle_ground_model = { quote ~ "groundModel" ~ quote ~ ":" ~ string }
+triangle_drag_coef = { quote ~ "dragCoef" ~ quote ~ ":" ~ number }
+triangle_group = { quote ~ "group" ~ quote ~ ":" ~ string }
+
+parts = _{ SOI ~ "{" ~  part* ~ "}" ~ EOI }
 
 jbeam = _{ SOI ~ (object | array) ~ EOI }
