@@ -38,7 +38,7 @@ quote = _{ "\"" }
 // jbeam files can contain multiple parts
 // we know an object is a part if it has an information object
 
-part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | torsionbars }
+part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | torsionbars | nodes }
 
 part = { string ~ ":" ~ "{" ~ information ~ part_values* ~ "}"}
 
@@ -119,6 +119,75 @@ nodes = { quote ~ "nodes" ~ quote ~ ":" ~ "[" ~ (node | node_modifiers | "[" ~ s
 
 node = { "[" ~ string ~ number ~ number ~ number ~ node_modifiers? ~ "]" }
 
+node_modifiers = { "{" ~ node_modifier* ~ "}" }
 
+node_modifier = {
+    node_weight |
+    node_collision |
+    node_self_collision |
+    node_group |
+    node_friction_coef |
+    node_material |
+    node_fixed |
+    node_coupler_strength |
+    node_coupler_tag |
+    node_coupler_radius |
+    node_break_group |
+    node_coupler_lock |
+    node_import_electrics |
+    node_import_inputs |
+    node_surface_coef |
+    node_volume_coef |
+    node_no_load_coef |
+    node_full_load_coef |
+    node_stribeck_exponent |
+    node_stribeck_vel_mult |
+    node_softness_coef |
+    node_tread_coef |
+    node_tag |
+    node_load_sensitivity_slope |
+    node_paired_node |
+    node_chem_energy |
+    node_burn_rate |
+    node_flash_point |
+    node_spec_heat |
+    node_smoke_point |
+    node_self_ignition_coef |
+    node_engine_group
+}
+
+node_weight = { quote ~ "nodeWeight" ~ quote ~ ":" ~ number }
+node_collision = { quote ~ "collision" ~ quote ~ ":" ~ boolean }
+node_self_collision = { quote ~ "selfCollision" ~ quote ~ ":" ~ boolean }
+node_group = { quote ~ "group" ~ quote ~ ":" ~ (("[" ~ string* ~ "]") | string) }
+node_friction_coef = { quote ~ "frictionCoef" ~ quote ~ ":" ~ number }
+node_material = { quote ~ "nodeMaterial" ~ quote ~ ":" ~ string }
+node_fixed = { quote ~ "fixed" ~ quote ~ ":" ~ boolean }
+node_coupler_strength = { quote ~ "couplerStrength" ~ quote ~ ":" ~ number }
+node_coupler_tag = { quote ~ "couplerTag" ~ quote ~ ":" ~ number }
+node_coupler_radius = { quote ~ "couplerRadius" ~ quote ~ ":" ~ number }
+node_break_group = { quote ~ "breakGroup" ~ quote ~ ":" ~ string }
+node_coupler_lock = { quote ~ "couplerLock" ~ quote ~ ":" ~ boolean }
+node_import_electrics = { quote ~ "importElectrics" ~ quote ~ ":" ~ "[" ~ string* ~ "]" }
+node_import_inputs = { quote ~ "importInputs" ~ quote ~ ":" ~ "[" ~ string* ~ "]" }
+node_surface_coef = { quote ~ "surfaceCoef" ~ quote ~ ":" ~ number }
+node_volume_coef = { quote ~ "volumeCoef" ~ quote ~ ":" ~ number }
+node_no_load_coef = { quote ~ "noLoadCoef" ~ quote ~ ":" ~ number }
+node_full_load_coef = { quote ~ "fullLoadCoef" ~ quote ~ ":" ~ number }
+node_stribeck_exponent = { quote ~ "stribeckExponent" ~ quote ~ ":" ~ number }
+node_stribeck_vel_mult = { quote ~ "stribeckVelMult" ~ quote ~ ":" ~ number }
+node_softness_coef = { quote ~ "softnessCoef" ~ quote ~ ":" ~ number }
+node_tread_coef = { quote ~ "treadCoef" ~ quote ~ ":" ~ number }
+node_tag = { quote ~ "tag" ~ quote ~ ":" ~ string }
+node_load_sensitivity_slope = { quote ~ "loadSensitivitySlope" ~ quote ~ ":" ~ number }
+node_paired_node = { quote ~ "pairedNode" ~ quote ~ ":" ~ string }
+// undocumented:
+node_chem_energy = { quote ~ "chemEnergy" ~ quote ~ ":" ~ (number | boolean) }
+node_burn_rate = { quote ~ "burnRate" ~ quote ~ ":" ~ (number | boolean) }
+node_flash_point = { quote ~ "flashPoint" ~ quote ~ ":" ~ (number | boolean) }
+node_spec_heat = { quote ~ "specHeat" ~ quote ~ ":" ~ (number | boolean) }
+node_smoke_point = { quote ~ "smokePoint" ~ quote ~ ":" ~ (number | boolean) }
+node_self_ignition_coef = { quote ~ "selfIgnitionCoef" ~ quote ~ ":" ~ (number | boolean) }
+node_engine_group = { quote ~ "engineGroup" ~ quote ~ ":" ~ (("[" ~ string* ~ "]") | string) }
 
 jbeam = _{ SOI ~ (object | array) ~ EOI }
