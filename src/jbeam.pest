@@ -38,7 +38,7 @@ quote = _{ "\"" }
 // jbeam files can contain multiple parts
 // we know an object is a part if it has an information object
 
-part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | torsionbars | nodes }
+part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | torsionbars | nodes | beams }
 
 part = { string ~ ":" ~ "{" ~ information ~ part_values* ~ "}"}
 
@@ -189,5 +189,74 @@ node_spec_heat = { quote ~ "specHeat" ~ quote ~ ":" ~ (number | boolean) }
 node_smoke_point = { quote ~ "smokePoint" ~ quote ~ ":" ~ (number | boolean) }
 node_self_ignition_coef = { quote ~ "selfIgnitionCoef" ~ quote ~ ":" ~ (number | boolean) }
 node_engine_group = { quote ~ "engineGroup" ~ quote ~ ":" ~ (("[" ~ string* ~ "]") | string) }
+
+// beams object
+
+beams = { quote ~ "beams" ~ quote ~ ":" ~ "[" ~ (beam | beam_modifiers)* ~ "]" }
+
+beam = { "[" ~ string ~ string ~ beam_modifiers? ~ "]" }
+
+beam_modifiers = { "{" ~ beam_modifier+ ~ "}" }
+
+beam_modifier = {
+    beam_beam_type |
+    beam_beam_spring |
+    beam_beam_damp |
+    beam_beam_strength |
+    beam_beam_deform |
+    beam_beam_precompression |
+    beam_beam_precompression_range |
+    beam_beam_precompression_time |
+    beam_break_group |
+    beam_break_group_type |
+    beam_name |
+    beam_damp_cuttoff_hz |
+    beam_deform_limit |
+    beam_deform_limit_expansion |
+    beam_optional |
+    beam_deform_group |
+    beam_deformation_trigger_ratio |
+    beam_sound_file |
+    beam_color_factor |
+    beam_attack_factor |
+    beam_volume_factor |
+    beam_decay_factor |
+    beam_pitch_factor |
+    beam_max_stress |
+    beam_beam_long_bound |
+    beam_beam_short_bound |
+    beam_disable_mesh_breaking |
+    beam_disable_triangle_breaking
+}
+
+beam_beam_type = { quote ~ "beamType" ~ quote ~ ":" ~ string }
+beam_beam_spring = { quote ~ "beamSpring" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_damp = { quote ~ "beamDamp" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_strength = { quote ~ "beamStrength" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_deform = { quote ~ "beamDeform" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_precompression = { quote ~ "beamPrecompression" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_precompression_range = { quote ~ "beamPrecompressionRange" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_precompression_time = { quote ~ "beamPrecompressionTime" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_break_group = { quote ~ "breakGroup" ~ quote ~ ":" ~ string }
+beam_break_group_type = { quote ~ "breakGroupType" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_name = { quote ~ "name" ~ quote ~ ":" ~ string }
+beam_damp_cuttoff_hz = { quote ~ "dampCutoffHz" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_deform_limit = { quote ~ "deformLimit" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_deform_limit_expansion = { quote ~ "deformLimitExpansion" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_optional = { quote ~ "optional" ~ quote ~ ":" ~ boolean }
+beam_deform_group = { quote ~ "deformGroup" ~ quote ~ ":" ~ string }
+beam_deformation_trigger_ratio = { quote ~ "deformationTriggerRatio" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_sound_file = { quote ~ "soundFile" ~ quote ~ ":" ~ string }
+beam_color_factor = { quote ~ "colorFactor" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_attack_factor = { quote ~ "attackFactor" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_volume_factor = { quote ~ "volumeFactor" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_decay_factor = { quote ~ "decayFactor" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_pitch_factor = { quote ~ "pitchFactor" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_max_stress = { quote ~ "maxStress" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+// undocumented
+beam_beam_long_bound = { quote ~ "beamLongBound" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_short_bound = { quote ~ "beamShortBound" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_disable_mesh_breaking = { quote ~ "disableMeshBreaking" ~ quote ~ ":" ~ boolean }
+beam_disable_triangle_breaking = { quote ~ "disableTriangleBreaking" ~ quote ~ ":" ~ boolean }
 
 jbeam = _{ SOI ~ (object | array) ~ EOI }
