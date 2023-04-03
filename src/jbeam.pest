@@ -1,15 +1,15 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" | "," }
-COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ "\n" }
+COMMENT = _{ ("//" ~ (!"\n" ~ ANY)* ~ "\n") | ("/*" ~ (!"*/" ~ ANY)* ~ "*/") }
 
 object = {
-    "{" ~ "}" |
-    "{" ~ pair ~ pair* ~ "}"
+"{" ~ "}" |
+"{" ~ pair ~ pair* ~ "}"
 }
 pair = { string ~ ":" ~ value }
 
 array = {
-    "[" ~ "]" |
-    "[" ~ value ~ value* ~ "]"
+"[" ~ "]" |
+"[" ~ value ~ value* ~ "]"
 }
 
 value = _{ object | array | string | number | boolean | null }
@@ -21,16 +21,16 @@ null = { "null" }
 string = ${ "\"" ~ inner ~ "\"" }
 inner = @{ char* }
 char = {
-    !("\"" | "\\") ~ ANY
-    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+!("\"" | "\\") ~ ANY
+| "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+| "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 
 number = @{
-    "-"?
-    ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
-    ~ ("." ~ ASCII_DIGIT*)?
-    ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+"-"?
+~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+~ ("." ~ ASCII_DIGIT*)?
+~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
 }
 
 quote = _{ "\"" }
@@ -38,7 +38,7 @@ quote = _{ "\"" }
 // jbeam files can contain multiple parts
 // we know an object is a part if it has an information object
 
-part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | torsionbars | nodes | beams | triangles }
+part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | slidenodes | rails | torsionbars | nodes | beams | triangles }
 
 part = { string ~ ":" ~ "{" ~ information ~ part_values* ~ "}"}
 
@@ -61,8 +61,8 @@ slots = { quote ~ "slots" ~ quote ~ ":" ~ "[" ~ slot* ~ "]" }
 
 slot = { "[" ~ string ~ string ~ string ~ ("{" ~ slot_modifier* ~ "}")? ~ "]" }
 slot_modifier = {
-    (quote ~ "coreSlot" ~ quote ~ ":" ~ boolean) |
-    (quote ~ "nodeOffset" ~ quote ~ ":" ~ xyz)
+(quote ~ "coreSlot" ~ quote ~ ":" ~ boolean) |
+(quote ~ "nodeOffset" ~ quote ~ ":" ~ xyz)
 }
 
 xyz = _{ "{" ~ quote ~ "x" ~ quote ~ ":" ~ number ~ quote ~ "y" ~ quote ~ ":" ~ number ~ quote ~ "z" ~ quote ~ ":" ~ number ~ "}" }
@@ -91,21 +91,31 @@ camera_external = { quote ~ "cameraExternal" ~ quote ~ ":" ~ "{" ~ (string ~ ":"
 
 cameras_internal = { quote ~ "camerasInternal" ~ quote ~ ":" ~ "[" ~ value+ ~ "]" }
 
-// flexbodies object
+// flexbodies object !!!TODO!!!
 
-flexbodies = { quote ~ "flexbodies" ~ quote ~ ":" ~ "[" ~ (flexbody | ("[" ~ string ~ string ~ string ~ "]") )* ~"]" }
+flexbodies = { quote ~ "flexbodies" ~ quote ~ ":" ~ "[" ~ value+ ~ "]" }
+
+
 
 flexbody = { "[" ~ string ~ flexbody_groups ~ non_flex_materials? ~ "]" }
 flexbody_groups = { "[" ~ string+ ~ "]" }
 non_flex_materials = { "[" ~ string+ ~ "]" }
+
+// slidenodes object !!!TODO!!!
+
+slidenodes = { quote ~ "slidenodes" ~ quote ~ ":" ~ "[" ~ value+ ~ "]" }
+
+// rails object !!!TODO!!!
+
+rails = { quote ~ "rails" ~ quote ~ ":" ~ "{" ~ (string ~ ":" ~ value)+ ~ "}" }
 
 // torsionbars object
 
 torsionbars = { quote ~ "torsionbars" ~ quote ~ ":" ~ "["~ (torsionbar | torsionbar_modifiers)* ~ "]" }
 
 torsionbar = { "[" ~ string ~ string ~ string ~ string ~ torsionbar_modifiers? ~ "]" }
-torsionbar_modifiers = { "{" ~ torsionbar_modifier* ~ "}" }
-torsionbar_modifier = {
+    torsionbar_modifiers = { "{" ~ torsionbar_modifier* ~ "}" }
+    torsionbar_modifier = {
     quote ~ "spring" ~ quote ~ ":" ~ number |
     quote ~ "damp" ~ quote ~ ":" ~ number |
     quote ~ "deform" ~ quote ~ ":" ~ number |
@@ -226,7 +236,11 @@ beam_modifier = {
     beam_beam_long_bound |
     beam_beam_short_bound |
     beam_disable_mesh_breaking |
-    beam_disable_triangle_breaking
+    beam_disable_triangle_breaking |
+    beam_bound_zone |
+    beam_beam_limit_spring |
+    beam_beam_limit_damp |
+    beam_lbeam
 }
 
 beam_beam_type = { quote ~ "beamType" ~ quote ~ ":" ~ string }
@@ -258,6 +272,11 @@ beam_beam_long_bound = { quote ~ "beamLongBound" ~ quote ~ ":" ~ (number | quote
 beam_beam_short_bound = { quote ~ "beamShortBound" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
 beam_disable_mesh_breaking = { quote ~ "disableMeshBreaking" ~ quote ~ ":" ~ boolean }
 beam_disable_triangle_breaking = { quote ~ "disableTriangleBreaking" ~ quote ~ ":" ~ boolean }
+beam_bound_zone = { quote ~ "boundZone" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_limit_spring = { quote ~ "beamLimitSpring" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+beam_beam_limit_damp = { quote ~ "beamLimitDamp" ~ quote ~ ":" ~ (number | quote ~ quote | quote ~ "FLT_MAX" ~ quote) }
+
+beam_lbeam = { string ~ ":" ~ string }
 
 // triangles object
 
@@ -270,12 +289,19 @@ triangle_modifiers = { "{" ~ triangle_modifier+ ~ "}" }
 triangle_modifier = {
     triangle_ground_model |
     triangle_drag_coef |
-    triangle_group    
+    triangle_group |
+    triangle_triangle_type |
+    triangle_lift_coef |
+    triangle_optional
 }
 
 triangle_ground_model = { quote ~ "groundModel" ~ quote ~ ":" ~ string }
 triangle_drag_coef = { quote ~ "dragCoef" ~ quote ~ ":" ~ number }
 triangle_group = { quote ~ "group" ~ quote ~ ":" ~ string }
+triangle_triangle_type = { quote ~ "triangleType" ~ quote ~ ":" ~ string }
+triangle_lift_coef = { quote ~ "liftCoef" ~ quote ~ ":" ~ number }
+triangle_optional = { quote ~ "optional" ~ quote ~ ":" ~ boolean }
+
 
 parts = _{ SOI ~ "{" ~  part* ~ "}" ~ EOI }
 
