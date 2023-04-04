@@ -3,65 +3,323 @@ use three_d::*;
 use regex::Regex;
 use rfd::FileDialog;
 
-pub struct JNodeGroup {
-    pub group_name: String,
-    pub node_ids: Vec<String>,
-    pub node_material: JPhysicalMaterial,
 
 
-}
 
-
-use pest::Parser;
+use pest::{Parser, iterators::Pairs};
 
 #[derive(Parser)]
-#[grammar = "example.pest"]
-struct MyParser;
+#[grammar = "jbeam.pest"]
+pub struct JBeamParser;
+
+fn parse_node_modifiers(rule: Pairs<Rule>, node: JNode) -> JNode {
+
+    let mut node = node.clone();
+
+    
+
+    for rule in rule {
+        for rule in rule.into_inner() {
+            // these are the actual modifier rules
+            // println!("{:?}", rule.as_rule());
+
+            match rule.as_rule() {
+                Rule::node_weight => {
+
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.node_weight = rule.as_str().parse().unwrap();
+                        }
+                    }
+
+                },
+                Rule::node_collision => {
 
 
-impl JNodeGroup {
-    pub fn new(group_name: String) -> Self {
-        Self {
-            group_name,
-            node_ids: Vec::new(),
-            node_material: JPhysicalMaterial::Metal,
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::boolean {
+                            node.collision = rule.as_str().parse().unwrap();
+                        }
+                    }
+
+
+                },
+                Rule::node_self_collision => {
+
+
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::boolean {
+                            node.self_collision = rule.as_str().parse().unwrap();
+                        }
+                    }
+
+                },
+                Rule::node_group => {
+                    let mut node_groups: Vec<String> = Vec::new();
+
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            node_groups.push(rule.as_str().to_string().replace(r#"""#, ""));
+                        }
+                    }
+                    node.group.append(&mut node_groups);
+                },
+                Rule::node_friction_coef => {
+
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.friction_coefficient = rule.as_str().parse().unwrap();
+                        }
+                    }
+
+                },
+                Rule::node_material => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            node.node_material = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::node_fixed => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::boolean {
+                            node.fixed = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_coupler_strength => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.coupler_strength = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_coupler_tag => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.coupler_tag = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_coupler_radius => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.coupler_radius = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_break_group => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            node.break_group = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::node_coupler_lock => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::boolean {
+                            node.coupler_lock = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_import_electrics => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            node.import_electrics.push(rule.as_str().to_string().replace(r#"""#, ""));
+                        }
+                    }
+                },
+                Rule::node_import_inputs => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            node.import_inputs.push(rule.as_str().to_string().replace(r#"""#, ""));
+                        }
+                    }
+                },
+                Rule::node_surface_coef => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.surface_coef = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_volume_coef => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.volume_coef = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_no_load_coef => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.no_load_coef = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_full_load_coef => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.full_load_coef = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_stribeck_exponent => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.stribeck_exponent = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_stribeck_vel_mult => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.stribeck_vel_mult = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_softness_coef => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.softness_coef = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_tread_coef => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.tread_coef = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_tag => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            node.tag = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::node_load_sensitivity_slope => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            node.load_sensitivity_slope = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::node_paired_node => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            node.paired_node = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::node_chem_energy => {
+
+                },
+                Rule::node_burn_rate => {
+
+                },
+                Rule::node_flash_point => {
+
+                },
+                Rule::node_spec_heat => {
+
+                },
+                Rule::node_smoke_point => {
+
+                },
+                Rule::node_self_ignition_coef => {
+
+                },
+                Rule::node_engine_group => {
+
+                },
+                _=> ()
+            }
+
         }
     }
+
+    println!("{:#?}", node);
+
+    return node;
+
+    
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum JPhysicalMaterial {
-    Metal,
-    Plastic,
-    Rubber,
-    Glass,
-    Wood,
-    Foliage,
-    Cloth,
-    Water,
-    Asphalt,
-    AsphaltWet,
-    Slippery,
-    Rock,
-    DirtDusty,
-    Dirt,
-    Sand,
-    SandyRoad,
-    Mud,
-    Gravel,
-    Grass,
-    Ice,
-    Snow,
-    Firesmall,
-    Firemedium,
-    Firelarge,
-    SmokeSmallBlack,
-    SmokeMediumBlack,
-    Steam,
-    RumbleStrip,
-    Cobblestone,
-    FoliageThin,
+pub fn parse_nodes(unparsed_file: String) -> Vec<JNode>{
+    
+    
+    let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!").next().unwrap();
+
+    let mut nodes: Vec<JNode> = Vec::new();
+
+    let mut node = JNode::new();
+
+    for rule in file.into_inner() {
+        if rule.as_rule() == Rule::nodes {
+
+
+            
+
+            for rule in rule.into_inner() {
+                match rule.as_rule() {
+                    Rule::node => {
+
+
+                        let mut coord_counter = 0;
+                        for rule in rule.into_inner() {
+                            match rule.as_rule() {
+                                Rule::string => {
+                                    node.id = rule.as_str().to_string().replace(r#"""#, "");
+
+                                },
+                                Rule::number => {
+                                    let value: f32 = rule.as_str().parse().unwrap();
+                                    match coord_counter {
+                                        0 => {
+                                            node.position.0 = value;
+                                        },
+                                        1 => {
+                                            node.position.2 = value;
+                                        },
+                                        2 => {
+                                            node.position.1 = value;
+                                        },
+                                        _=> ()
+                                    }
+                                    coord_counter += 1;
+                                },
+                                Rule::node_modifiers => {
+                                    node = parse_node_modifiers(rule.into_inner(), node)
+                                }
+                                _=> ()
+                            }
+                        }
+
+                        // println!("{}, {:?}", id, coords);
+
+                        nodes.push(node.clone());
+                        node = JNode::new();
+
+                    },
+                    Rule::node_modifiers => {
+                        node = parse_node_modifiers(rule.into_inner(), node);
+                    },
+                    _ => ()
+                }
+            }
+        }
+    }
+
+    nodes
 }
+
+
+
+
+
+
 
 #[derive(Debug, Clone)]
 pub struct JNode {
@@ -69,15 +327,15 @@ pub struct JNode {
     pub position: (f32, f32, f32),
     pub imported: bool,
     // optional arguments
-    pub node_weight: f32,
+    pub node_weight: f64,
     collision: bool,
     self_collision: bool,
     pub group: Vec<String>,
     friction_coefficient: f32,
-    node_material: JPhysicalMaterial,
+    node_material: String,
     fixed: bool,
     coupler_strength: f32,
-    coupler_tag: String,
+    coupler_tag: f32,
     coupler_radius: f32,
     break_group: String,
     coupler_lock: bool,
@@ -100,23 +358,22 @@ pub struct JNode {
 
 
 }
-
 impl JNode {
-    pub fn new(id: String, position: (f32, f32, f32), imported: bool) -> Self {
+    pub fn new() -> Self {
         Self {
-            id,
-            position,
-            imported,
+            id: "".to_owned(),
+            position: (0.0, 0.0, 0.0),
+            imported: true,
             node_weight: 0.0,
             collision: false,
             self_collision: false,
             group: Vec::new(),
             friction_coefficient: 1.0,
-            node_material: JPhysicalMaterial::Metal,
+            node_material: "Metal".to_owned(),
             fixed: false,
             // highest f32 value
             coupler_strength: 340282346638528859811704183484516925440.0,
-            coupler_tag: String::new(),
+            coupler_tag: 1.0,
             coupler_radius: 0.0,
             break_group: String::new(),
             coupler_lock: false,
@@ -137,6 +394,7 @@ impl JNode {
             is_selected: false,
         }
     }
+
 
     pub fn write(&self, filename: String) -> String{
         let group_str = if self.group.len() > 0 {
@@ -178,65 +436,8 @@ impl JNode {
 
     }
 
-    pub fn apply_modifiers(&mut self, modifier: JNodeModifer, inline_modifiers: JNodeModifer) {
-        self.node_weight = modifier.node_weight;
-        self.collision = modifier.collision;
-        self.self_collision = modifier.self_collision;
-        self.friction_coefficient = modifier.friction_coefficient;
-        self.node_material = modifier.node_material;
-
-        self.group = modifier.group;
-
-        // only apply inline modifiers if they are not default
-        if inline_modifiers.node_weight != 0.0 {
-            self.node_weight = inline_modifiers.node_weight;
-        }
-        if inline_modifiers.collision {
-            self.collision = inline_modifiers.collision;
-        }
-        if inline_modifiers.self_collision {
-            self.self_collision = inline_modifiers.self_collision;
-        }
-        if inline_modifiers.friction_coefficient != 1.0 {
-            self.friction_coefficient = inline_modifiers.friction_coefficient;
-        }
-        if inline_modifiers.node_material != JPhysicalMaterial::Metal {
-            self.node_material = inline_modifiers.node_material;
-        }
-
-        if inline_modifiers.group.len() > 0 {
-            self.group = inline_modifiers.group;
-        }
-
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct JNodeModifer {
-
-    pub node_weight: f32,
-    pub collision: bool,
-    pub self_collision: bool,
-    group: Vec<String>,
-    pub friction_coefficient: f32,
-    pub node_material: JPhysicalMaterial,
 
 }
-
-impl JNodeModifer {
-    pub fn new() -> Self {
-        Self {
-            node_weight: 0.0,
-            collision: false,
-            self_collision: false,
-            group: Vec::new(),
-            friction_coefficient: 1.0,
-            node_material: JPhysicalMaterial::Metal,
-        }
-    }
-
-}
-
 
 #[derive(Debug, Clone)]
 pub enum BeamType {
@@ -256,7 +457,7 @@ pub struct JBeam {
     pub id2: String,
     imported: bool,
     // optional arguments
-    beam_type: BeamType,
+    beam_type: String,
     beam_spring: f32,
     beam_damp: f32,
     beam_strength: f32,
@@ -265,7 +466,7 @@ pub struct JBeam {
     beam_compression_range: f32,
     beam_compression_time: f32,
     break_group: String,
-    break_group_type: i8,
+    break_group_type: String,
     name: String,
     damp_cutoff_hz: f32,
     deform_limit: f32,
@@ -284,12 +485,12 @@ pub struct JBeam {
 }
 
 impl JBeam {
-    pub fn new(id1: String, id2: String, imported: bool) -> Self {
+    pub fn new() -> Self {
         Self {
-            id1,
-            id2,
-            imported,
-            beam_type: BeamType::Normal,
+            id1: String::new(),
+            id2: String::new(),
+            imported: true,
+            beam_type: "Normal".to_owned(),
             beam_spring: 0.0,
             beam_damp: 0.0,
             beam_strength: 0.0,
@@ -298,7 +499,7 @@ impl JBeam {
             beam_compression_range: 0.0,
             beam_compression_time: 0.0,
             break_group: String::new(),
-            break_group_type: 0,
+            break_group_type: "0".to_owned(),
             name: String::new(),
             damp_cutoff_hz: 0.0,
             deform_limit: 0.0,
@@ -315,7 +516,6 @@ impl JBeam {
             max_stress: 0.0,
         }
     }
-
     pub fn write(&self) -> String {
 
         let data = format!(r#"["{}", "{}"],"#, self.id1, self.id2);
@@ -380,195 +580,271 @@ pub fn get_node_by_id(id: String, nodes: &Vec<JNode>) -> Option<usize> {
 
 
 
-fn handle_modifier(input_line: &str, scope_modifiers: &mut JNodeModifer) {
-
-    let parsed_modifiers = MyParser::parse(Rule::modifier_list, input_line).unwrap();
-
-    for rule in parsed_modifiers {
-        // println!("{:?}", pair.as_rule());
-
-        match rule.as_rule() {
-            Rule::group => {
 
 
 
-                for component in rule.into_inner() {
-                    let g = component.as_str().replace("\"", "");
 
-                    if g == "" {
-                        scope_modifiers.group = Vec::new();
-                    } else {
-                        scope_modifiers.group.push(g);
+
+fn parse_beam_modifiers(rule: Pairs<Rule>, beam: JBeam) -> JBeam {
+
+    let mut beam = beam.clone();
+
+    for rule in rule {
+        for rule in rule.into_inner() {
+            // these are the actual beam modifiers
+            match rule.as_rule() {
+                Rule::beam_beam_type => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.beam_type = rule.as_str().to_string().replace(r#"""#, "");
+                        }
                     }
-                    
-                }
-            },
-            Rule::node_material => {
-                let material_string = rule.as_str().replace("\"", "").replace(r#"""#, "");
-                if material_string == r#"nodeMaterial:"""# {
-                    scope_modifiers.node_material == JPhysicalMaterial::Metal;
-                } else {
-                    let material_string = material_string.split("_").nth(1).unwrap();
-                    // match the materials
-                }
-            },
-            _=> ()
+                },
+                Rule::beam_beam_spring => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_spring = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_damp => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_damp = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_strength => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_strength = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_deform => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_deform = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_precompression => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_compression = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_precompression_range => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_compression_range = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_precompression_time => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_compression_time = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_break_group => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.break_group = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_break_group_type => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.break_group_type = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_name => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.name = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_damp_cuttoff_hz => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.damp_cutoff_hz = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_deform_limit => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.deform_limit = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_deform_limit_expansion => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.deform_limt_expansion = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_optional => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::boolean {
+                            beam.optional = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_deform_group => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.deform_group = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_deformation_trigger_ratio => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.deformation_trigger_ratio = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_sound_file => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.sound_file = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_color_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.color_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_attack_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.attack_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_volume_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.volume_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_decay_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.decay_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_pitch_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.pitch_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_max_stress => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.max_stress = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                _=> ()
+            }
         }
     }
 
+    beam
 
 }
 
+pub fn parse_beams(unparsed_file: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Vec<JBeam>) {
+    let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!").next().unwrap();
 
-
-
-pub fn parse_jbeam(input_string: String ) -> Vec<JNode> {
-
-    let mut scope_modifiers = JNodeModifer::new();
-
-    let mut nodes: Vec<JNode> = Vec::new();
-
-    for line in input_string.split("\n") {
-        if line.trim().starts_with("[") {
-
-            let mut inline_modifiers = JNodeModifer::new();
-
-            // handle inline modifiers
-            if line.contains("{") {
-                let inline_modifiers = line.split("{").nth(1).unwrap().split(",");
-                
-                for modifier in inline_modifiers {
-                    // ignore if it starts with //
-                    if !modifier.trim().starts_with("//") {
-                        
-                    }
-                }
-            }
-
-            let inline_modifiers_str = line.clone().split("{").nth(1).unwrap_or("");
-
-            if inline_modifiers_str != "" {
-                let parsed_input = MyParser::parse(Rule::root, inline_modifiers_str).unwrap();
-                for rule in parsed_input {
-                    match rule.as_rule() {
-
-                        Rule::group => {
-                            for g in rule.into_inner() {
-                                let g = g.as_str().replace("\"", "");
-                                inline_modifiers.group.push(g);
-                            }
-                        },
-                        Rule::node_material => {
-                            println!("MATERIAL: {:?}", rule);
-                        },
-                        Rule::self_collision => {
-                            let self_collision: bool = rule.as_str().replace(r#""selfCollision":"#, "").replace(r#""#, "").parse().unwrap();
-
-                            inline_modifiers.self_collision = self_collision;
-
-
-                        },
-                        Rule::collision => {
-                            let collision: bool = rule.as_str().replace(r#""collision":"#, "").replace(r#""#, "").parse().unwrap();
-                            
-                            inline_modifiers.collision = collision;
-                        },
-                        Rule::node_weight => {
-                            let node_weight: f32 = rule.as_str().replace(r#""nodeWeight":"#, "").replace(r#""#, "").parse().unwrap();
-                            
-                            inline_modifiers.node_weight = node_weight;
-
-                        },
-                        
-                        _ => ()
-                    }
-                }
-            }
-
-            let line = line.split("{").next().unwrap().trim();
-            
-
-            let re = Regex::new(r"[\w\.-]+").unwrap();
-            let matches: Vec<regex::Match> = re.find_iter(line).collect();
-
-            let node_id: &str = matches[0].as_str();
-
-            let x: f32 = matches[1].as_str().parse().unwrap();
-            let y: f32 = matches[2].as_str().parse().unwrap();
-            let z: f32 = matches[3].as_str().parse().unwrap();
-
-            let mut node = JNode::new(node_id.to_string(), (x, z, y), true);
-
-            node.apply_modifiers(scope_modifiers.clone(), inline_modifiers.clone());
-
-            //println!("{}: {}, {}, {}", node_id, x, y, z);
-
-            nodes.push(node);
-        } else if line.trim().starts_with("{") {
-            // handle scope modifiers
-
-            let line = line.trim();
-
-
-            println!("{}", line);
-
-            handle_modifier(&line, &mut scope_modifiers)
-
-
-
-        } else if line.trim().starts_with("]") {
-            // end of the nodes section so we need to reset the modifiers
-            scope_modifiers = JNodeModifer::new();
-        }
-    }
-
-
-    nodes
-}
-
-pub fn parse_beams(input_string: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Vec<String>) {
     let mut beams: Vec<JBeam> = Vec::new();
 
-    let mut invalid_lines: Vec<String> = Vec::new();
+    let mut invalid_beams: Vec<JBeam> = Vec::new();
 
-    for line in input_string.split("\n") {
-        if line.trim().starts_with("[") {
-            let line = line.split("{").next().unwrap().trim();
-            let re = Regex::new(r"[\w\.-]+").unwrap();
-            let matches: Vec<regex::Match> = re.find_iter(line).collect();
+    let mut beam = JBeam::new();
 
-            let id1: &str = matches[0].as_str();
-            let id2: &str = matches[1].as_str();
+    for rule in file.into_inner() {
+        if rule.as_rule() == Rule::beams {
 
-            // check if the nodes exist
-            if get_node_by_id(id1.to_string(), nodes).is_none() {
-                println!("{} does not exist", id1);
 
-                invalid_lines.push(line.to_string());
-
-                continue;
-            }
-
-            if get_node_by_id(id2.to_string(), nodes).is_none() {
-                println!("{} does not exist", id2);
-
-                invalid_lines.push(line.to_string());
-
-                continue;
-            }
-
-            let beam = JBeam::new(id1.to_string(), id2.to_string(), true);
-
-            //println!("{}: {}", id1, id2);
-
-            beams.push(beam);
             
+
+            for rule in rule.into_inner() {
+                match rule.as_rule() {
+                    Rule::beam => {
+
+
+                        for rule in rule.into_inner() {
+                            match rule.as_rule() {
+                                Rule::string => {
+                                    if beam.id1.is_empty() {
+                                        beam.id1 = rule.as_str().to_string().replace(r#"""#, "");
+                                    } else {
+                                        beam.id2 = rule.as_str().to_string().replace(r#"""#, "");
+                                    }
+                                },
+                                Rule::beam_modifiers => {
+                                    beam = parse_beam_modifiers(rule.into_inner(), beam);
+                                }
+                                _=> ()
+                            }
+                        }
+
+                        // check if nodes exist
+
+                        let mut node1_exists = false;
+                        let mut node2_exists = false;
+
+                        for node in nodes {
+                            if node.id == beam.id1 {
+                                node1_exists = true;
+                            }
+                            if node.id == beam.id2 {
+                                node2_exists = true;
+                            }
+                        }
+
+                        if node1_exists && node2_exists {
+                            beams.push(beam.clone());
+                            println!("Valid beam");
+                        } else {
+                            invalid_beams.push(beam.clone());
+                            println!("Invalid beam");
+                        }
+
+
+
+                        beam = JBeam::new();
+
+                    },
+                    Rule::beam_modifiers => {
+                        beam = parse_beam_modifiers(rule.into_inner(), beam);
+                    },
+                    _ => ()
+                }
+            }
         }
     }
 
 
 
-    (beams, invalid_lines)
+    (beams, invalid_beams)
 }
 
 pub fn get_distance(a: Vec3, b: Vec3) -> f32 {
@@ -615,7 +891,10 @@ pub fn new_node(nodes: &Vec<JNode>, pos: (f32, f32, f32), id: String) -> Option<
         }
     }
 
-    let node = JNode::new(id, pos, false);
+    let mut node = JNode::new();
+
+    node.id = id;
+    node.position = pos;
 
     return Some(node);
 
@@ -648,7 +927,10 @@ pub fn new_beam(nodes: &Vec<JNode>, beams: &Vec<JBeam>, id1: String, id2: String
         }
     }
 
-    let beam = JBeam::new(id1, id2, false);
+    let mut beam = JBeam::new();
+    beam.id1 = id1;
+    beam.id2 = id2;
+    beam.imported = false;
 
     return Some(beam);
 }
@@ -656,90 +938,7 @@ pub fn new_beam(nodes: &Vec<JNode>, beams: &Vec<JBeam>, id1: String, id2: String
 
 
 
-pub fn load_jbeam_file(contents: &String) -> (String, String) {
 
-    let mut discovering_nodes = false;
-
-    let mut discovering_beams = false;
-
-
-
-
-    let mut node_string = "".to_owned();
-
-    let mut beam_string = "".to_owned();
-
-    for line in contents.clone().split("\n") {
-
-
-        let line = line.trim();
-
-        if discovering_nodes {
-
-            if line.starts_with(r#"]"#) {
-                discovering_nodes = false;
-            } else {
-                node_string = format!("{}\n{}", node_string, line.clone());
-            }
-
-            
-
-            
-
-        }
-
-
-        if line.starts_with(r#"["id""#) {
-
-            discovering_nodes = true;
-
-        }
-
-
-    }
-
-
-
-
-    for line in contents.split("\n") {
-
-
-        let line = line.trim();
-
-        if discovering_beams {
-
-            if line.starts_with(r#"]"#) {
-                discovering_beams = false;
-            } else {
-                beam_string = format!("{}\n{}", beam_string, line.clone());
-            }
-
-            if line.starts_with("{") {
-                println!("{}", line)
-            }
-
-            
-
-            
-
-        }
-
-
-        if line.starts_with(r#"["id1:", "id2:"]"#) {
-
-            discovering_beams = true;
-
-        }
-
-
-    }
-
-
-
-
-    return (node_string, beam_string);
-
-}
 
 pub fn write_user_created_nodes(nodes: &Vec<JNode>) {
 

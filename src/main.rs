@@ -55,7 +55,7 @@ fn main() {
 
     // any beams that are loaded but the nodes do not exist will be added to a separate vector so they can be added later if more nodes are loaded
 
-    let mut invalid_beams: Vec<String> = Vec::new();
+    let mut invalid_beams: Vec<jbeam::JBeam> = Vec::new();
 
     
 
