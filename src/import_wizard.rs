@@ -39,7 +39,7 @@ impl Default for ImportVars {
     
 
 
-pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars, nodes: &mut Vec<jbeam::JNode>, beams: &mut Vec<jbeam::JBeam>, invalid_beams: &mut Vec<String>) {
+pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars, nodes: &mut Vec<jbeam::JNode>, beams: &mut Vec<jbeam::JBeam>, invalid_beams: &mut Vec<jbeam::JBeam>) {
     Window::new("JBeam Importer").anchor(Align2::CENTER_TOP, [0.0, 0.0]).show(&gui_context, |ui| {
 
         if ui.button("browse...").clicked() {
@@ -63,7 +63,13 @@ pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars
         if ui.button("import").clicked() {
             // load the file
             let file_contents = fs::read_to_string(&import_vars.path).unwrap();
-            nodes.append(&mut jbeam::parse_nodes(file_contents));
+            nodes.append(&mut jbeam::parse_nodes(file_contents.clone()));
+            
+            let (mut new_valid_beams, mut new_invalid_beams) = jbeam::parse_beams(file_contents, nodes);
+
+            beams.append(&mut new_valid_beams);
+            invalid_beams.append(&mut new_invalid_beams);
+
         }
 
 

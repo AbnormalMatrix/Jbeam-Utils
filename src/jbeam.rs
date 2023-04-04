@@ -271,7 +271,7 @@ pub fn parse_nodes(unparsed_file: String) -> Vec<JNode>{
                         for rule in rule.into_inner() {
                             match rule.as_rule() {
                                 Rule::string => {
-                                    node.id = rule.as_str().to_string();
+                                    node.id = rule.as_str().to_string().replace(r#"""#, "");
 
                                 },
                                 Rule::number => {
@@ -457,7 +457,7 @@ pub struct JBeam {
     pub id2: String,
     imported: bool,
     // optional arguments
-    beam_type: BeamType,
+    beam_type: String,
     beam_spring: f32,
     beam_damp: f32,
     beam_strength: f32,
@@ -466,7 +466,7 @@ pub struct JBeam {
     beam_compression_range: f32,
     beam_compression_time: f32,
     break_group: String,
-    break_group_type: i8,
+    break_group_type: String,
     name: String,
     damp_cutoff_hz: f32,
     deform_limit: f32,
@@ -485,12 +485,12 @@ pub struct JBeam {
 }
 
 impl JBeam {
-    pub fn new(id1: String, id2: String, imported: bool) -> Self {
+    pub fn new() -> Self {
         Self {
-            id1,
-            id2,
-            imported,
-            beam_type: BeamType::Normal,
+            id1: String::new(),
+            id2: String::new(),
+            imported: true,
+            beam_type: "Normal".to_owned(),
             beam_spring: 0.0,
             beam_damp: 0.0,
             beam_strength: 0.0,
@@ -499,7 +499,7 @@ impl JBeam {
             beam_compression_range: 0.0,
             beam_compression_time: 0.0,
             break_group: String::new(),
-            break_group_type: 0,
+            break_group_type: "0".to_owned(),
             name: String::new(),
             damp_cutoff_hz: 0.0,
             deform_limit: 0.0,
@@ -516,7 +516,6 @@ impl JBeam {
             max_stress: 0.0,
         }
     }
-
     pub fn write(&self) -> String {
 
         let data = format!(r#"["{}", "{}"],"#, self.id1, self.id2);
@@ -586,51 +585,266 @@ pub fn get_node_by_id(id: String, nodes: &Vec<JNode>) -> Option<usize> {
 
 
 
+fn parse_beam_modifiers(rule: Pairs<Rule>, beam: JBeam) -> JBeam {
 
+    let mut beam = beam.clone();
 
-pub fn parse_beams(input_string: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Vec<String>) {
+    for rule in rule {
+        for rule in rule.into_inner() {
+            // these are the actual beam modifiers
+            match rule.as_rule() {
+                Rule::beam_beam_type => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.beam_type = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_beam_spring => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_spring = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_damp => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_damp = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_strength => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_strength = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_deform => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_deform = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_precompression => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_compression = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_precompression_range => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_compression_range = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_beam_precompression_time => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.beam_compression_time = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_break_group => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.break_group = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_break_group_type => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.break_group_type = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_name => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.name = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_damp_cuttoff_hz => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.damp_cutoff_hz = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_deform_limit => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.deform_limit = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_deform_limit_expansion => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.deform_limt_expansion = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_optional => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::boolean {
+                            beam.optional = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_deform_group => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.deform_group = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_deformation_trigger_ratio => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.deformation_trigger_ratio = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_sound_file => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::string {
+                            beam.sound_file = rule.as_str().to_string().replace(r#"""#, "");
+                        }
+                    }
+                },
+                Rule::beam_color_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.color_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_attack_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.attack_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_volume_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.volume_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_decay_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.decay_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_pitch_factor => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.pitch_factor = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                Rule::beam_max_stress => {
+                    for rule in rule.into_inner() {
+                        if rule.as_rule() == Rule::number {
+                            beam.max_stress = rule.as_str().parse().unwrap();
+                        }
+                    }
+                },
+                _=> ()
+            }
+        }
+    }
+
+    beam
+
+}
+
+pub fn parse_beams(unparsed_file: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Vec<JBeam>) {
+    let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!").next().unwrap();
+
     let mut beams: Vec<JBeam> = Vec::new();
 
-    let mut invalid_lines: Vec<String> = Vec::new();
+    let mut invalid_beams: Vec<JBeam> = Vec::new();
 
-    for line in input_string.split("\n") {
-        if line.trim().starts_with("[") {
-            let line = line.split("{").next().unwrap().trim();
-            let re = Regex::new(r"[\w\.-]+").unwrap();
-            let matches: Vec<regex::Match> = re.find_iter(line).collect();
+    let mut beam = JBeam::new();
 
-            let id1: &str = matches[0].as_str();
-            let id2: &str = matches[1].as_str();
+    for rule in file.into_inner() {
+        if rule.as_rule() == Rule::beams {
 
-            // check if the nodes exist
-            if get_node_by_id(id1.to_string(), nodes).is_none() {
-                println!("{} does not exist", id1);
 
-                invalid_lines.push(line.to_string());
-
-                continue;
-            }
-
-            if get_node_by_id(id2.to_string(), nodes).is_none() {
-                println!("{} does not exist", id2);
-
-                invalid_lines.push(line.to_string());
-
-                continue;
-            }
-
-            let beam = JBeam::new(id1.to_string(), id2.to_string(), true);
-
-            //println!("{}: {}", id1, id2);
-
-            beams.push(beam);
             
+
+            for rule in rule.into_inner() {
+                match rule.as_rule() {
+                    Rule::beam => {
+
+
+                        for rule in rule.into_inner() {
+                            match rule.as_rule() {
+                                Rule::string => {
+                                    if beam.id1.is_empty() {
+                                        beam.id1 = rule.as_str().to_string().replace(r#"""#, "");
+                                    } else {
+                                        beam.id2 = rule.as_str().to_string().replace(r#"""#, "");
+                                    }
+                                },
+                                Rule::beam_modifiers => {
+                                    beam = parse_beam_modifiers(rule.into_inner(), beam);
+                                }
+                                _=> ()
+                            }
+                        }
+
+                        // check if nodes exist
+
+                        let mut node1_exists = false;
+                        let mut node2_exists = false;
+
+                        for node in nodes {
+                            if node.id == beam.id1 {
+                                node1_exists = true;
+                            }
+                            if node.id == beam.id2 {
+                                node2_exists = true;
+                            }
+                        }
+
+                        if node1_exists && node2_exists {
+                            beams.push(beam.clone());
+                            println!("Valid beam");
+                        } else {
+                            invalid_beams.push(beam.clone());
+                            println!("Invalid beam");
+                        }
+
+
+
+                        beam = JBeam::new();
+
+                    },
+                    Rule::beam_modifiers => {
+                        beam = parse_beam_modifiers(rule.into_inner(), beam);
+                    },
+                    _ => ()
+                }
+            }
         }
     }
 
 
 
-    (beams, invalid_lines)
+    (beams, invalid_beams)
 }
 
 pub fn get_distance(a: Vec3, b: Vec3) -> f32 {
@@ -713,7 +927,10 @@ pub fn new_beam(nodes: &Vec<JNode>, beams: &Vec<JBeam>, id1: String, id2: String
         }
     }
 
-    let beam = JBeam::new(id1, id2, false);
+    let mut beam = JBeam::new();
+    beam.id1 = id1;
+    beam.id2 = id2;
+    beam.imported = false;
 
     return Some(beam);
 }
