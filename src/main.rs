@@ -633,6 +633,12 @@ fn main() {
                             }
                         }
 
+                        if ui.button("Mark all beams for export").clicked() {
+                            for beam in beams.iter_mut() {
+                                beam.imported = false;
+                            }
+                        }
+
 
                         if ui.button("Generate Created Beams").clicked() {
                             jbeam::write_user_created_beams(&beams);
