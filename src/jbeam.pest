@@ -38,7 +38,7 @@ quote = _{ "\"" }
 // jbeam files can contain multiple parts
 // we know an object is a part if it has an information object
 
-part_values = _{ information | slot_type | slots | controller | soundscape | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | slidenodes | rails | torsionbars | nodes | beams | triangles }
+part_values = _{ information | slot_type | slots | controller | soundscape | sounds | props | analog_odometer | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | slidenodes | rails | torsionbars | nodes | beams | triangles }
 
 part = { string ~ ":" ~ "{" ~ information ~ part_values* ~ "}"}
 
@@ -74,6 +74,18 @@ controller = { quote ~ "controller" ~ quote ~ ":" ~ "[" ~ value+ ~ "]" }
 // soundscape object !!!TODO!!!
 
 soundscape = { quote ~ "soundscape" ~ quote ~ ":" ~ "[" ~ value+ ~ "]" }
+
+// sounds object !!!TODO!!!
+
+sounds = { quote ~ "sounds" ~ quote ~ ":" ~ "{" ~ (string ~ ":" ~ value)+ ~ "}" }
+
+// props object !!!TODO!!!
+
+props = { quote ~ "props" ~ quote ~ ":" ~ "[" ~ value+ ~ "]" }
+
+// analog_odometer object !!!TODO!!!
+
+analog_odometer = { quote ~ "analogOdometer" ~ quote ~ ":" ~ "{" ~ (string ~ ":" ~ value)+ ~ "}" }
 
 // refnodes object !!!TODO!!!
 
@@ -292,7 +304,8 @@ triangle_modifier = {
     triangle_group |
     triangle_triangle_type |
     triangle_lift_coef |
-    triangle_optional
+    triangle_optional |
+    triangle_break_group
 }
 
 triangle_ground_model = { quote ~ "groundModel" ~ quote ~ ":" ~ string }
@@ -301,7 +314,7 @@ triangle_group = { quote ~ "group" ~ quote ~ ":" ~ string }
 triangle_triangle_type = { quote ~ "triangleType" ~ quote ~ ":" ~ string }
 triangle_lift_coef = { quote ~ "liftCoef" ~ quote ~ ":" ~ number }
 triangle_optional = { quote ~ "optional" ~ quote ~ ":" ~ boolean }
-
+triangle_break_group = { quote ~ "breakGroup" ~ quote ~ ":" ~ string }
 
 parts = _{ SOI ~ "{" ~  part* ~ "}" ~ EOI }
 
