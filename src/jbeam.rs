@@ -281,10 +281,10 @@ pub fn parse_nodes(unparsed_file: String) -> Vec<JNode>{
                                             node.position.0 = value;
                                         },
                                         1 => {
-                                            node.position.1 = value;
+                                            node.position.2 = value;
                                         },
                                         2 => {
-                                            node.position.2 = value;
+                                            node.position.1 = value;
                                         },
                                         _=> ()
                                     }
