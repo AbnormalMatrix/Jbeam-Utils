@@ -1,10 +1,10 @@
 use three_d::egui::{*, self};
-use crate::jbeam::{JNodeGroup, JPhysicalMaterial, JNode};
+use crate::jbeam::{ JNode};
 use rfd::FileDialog;
 use std::path::Path;
 
 pub struct UiVariables {
-    pub groups: Vec<JNodeGroup>,
+
     selected_group: usize,
     new_group_name: String,
     mod_name: String,
@@ -24,7 +24,7 @@ pub struct UiVariables {
 impl UiVariables {
     pub fn new() -> Self {
         Self {
-            groups: vec![JNodeGroup::new("Default".to_string())],
+
             selected_group: 0,
             new_group_name: String::new(),
             mod_name: String::new(),
@@ -63,155 +63,9 @@ pub fn show_nodes_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, se
         ui.separator();
 
         ui.horizontal(|ui| {
-
-            ui.label("Select Group:");
-
-            egui::ComboBox::new("group_selector", "").show_index(
-                ui,
-                &mut ui_vars.selected_group,
-                ui_vars.groups.len(),
-                |i| ui_vars.groups[i].group_name.clone(),
-            );
-            
-            ui.label("Or create new group:");
-
-            ui.add(egui::TextEdit::singleline(&mut ui_vars.new_group_name).hint_text("New Group Name"));
-
-            if ui.button("Create").clicked() {
-                ui_vars.groups.push(JNodeGroup::new(ui_vars.new_group_name.clone()));
-                ui_vars.new_group_name.clear();
-            }
-
-            ui.separator();
-
-            if ui.button("Add selected node to group").clicked() {
-
-                // check if node is already in group
-                if ui_vars.groups[ui_vars.selected_group].node_ids.contains(&selected_node_id) {
-                    println!("Node is already in group!");
-                    return;
-                }
-
-                // check if node is already in another group
-                for group in ui_vars.groups.iter() {
-                    if group.node_ids.contains(&selected_node_id) {
-                        println!("Node is already in another group!");
-                        return;
-                    }
-                }
-
-                // check if the selected node is an empty string
-                if selected_node_id == "".to_string() {
-                    println!("No node selected!");
-                    return;
-                }
-
-                ui_vars.groups[ui_vars.selected_group].node_ids.push(selected_node_id.clone());
-            }
-
+            ui.label("Selected node: ");
+            ui.label(selected_node_id);
         });
-
-        ui.separator();
-
-        ui.label("Node Physical Material:");
-
-
-        
-        // physical material
-
-        // Metal,
-        // Plastic,
-        // Rubber,
-        // Glass,
-        // Wood,
-        // Foliage,
-        // Cloth,
-        // Water,
-        // Asphalt,
-        // AsphaltWet,
-        // Slippery,
-        // Rock,
-        // DirtDusty,
-        // Dirt,
-        // Sand,
-        // SandyRoad,
-        // Mud,
-        // Gravel,
-        // Grass,
-        // Ice,
-        // Snow,
-        // Firesmall,
-        // Firemedium,
-        // Firelarge,
-        // SmokeSmallBlack,
-        // SmokeMediumBlack,
-        // Steam,
-        // RumbleStrip,
-        // Cobblestone,
-        // FoliageThin,
-
-        ui.horizontal(|ui| {
-            ComboBox::from_label("")
-                .selected_text(format!("{:?}", ui_vars.groups[ui_vars.selected_group].node_material))
-                .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Metal, "Metal");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Plastic, "Plastic");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Rubber, "Rubber");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Glass, "Glass");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Wood, "Wood");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Foliage, "Foliage");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Cloth, "Cloth");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Water, "Water");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Asphalt, "Asphalt");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::AsphaltWet, "Wet Asphalt");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Slippery, "Slippery");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Rock, "Rock");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::DirtDusty, "Dusty Dirt");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Dirt, "Dirt");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Sand, "Sand");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::SandyRoad, "Sandy Road");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Mud, "Mud");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Gravel, "Gravel");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Grass, "Grass");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Ice, "Ice");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Snow, "Snow");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Firesmall, "Small Fire");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Firemedium, "Medium Fire");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Firelarge, "Large Fire");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::SmokeSmallBlack, "Small Black Smoke");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::SmokeMediumBlack, "Medium Black Smoke");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Steam, "Steam");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::RumbleStrip, "Rumble Strip");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::Cobblestone, "Cobblestone");
-                    ui.selectable_value(&mut ui_vars.groups[ui_vars.selected_group].node_material, JPhysicalMaterial::FoliageThin, "Thin Foliage");
-
-                });
-        });
-
-        ui.horizontal(|ui| {
-            ui.label("This group contains: ");
-            ui.label(format!("{} nodes", ui_vars.groups[ui_vars.selected_group].node_ids.len()));
-            ui.label("node(s).");
-        });
-        
-        ui.separator();
-        ui.horizontal(|ui| {
-            ui.label("The slelected node is a member of the following groups: ");
-            ui.vertical(|ui| {
-
-                if node_selected {
-
-                    for group in nodes[selected_node_index].group.iter() {
-                        ui.label(group);
-                    }
-
-                } else {
-                    ui.label("No node selected.");
-                }
-
-            });
-        });
-
     });
 }
 
