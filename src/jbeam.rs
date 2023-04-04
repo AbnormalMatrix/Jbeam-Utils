@@ -490,7 +490,7 @@ impl JBeam {
             id1: String::new(),
             id2: String::new(),
             imported: true,
-            beam_type: "Normal".to_owned(),
+            beam_type: "NORMAL".to_owned(),
             beam_spring: 0.0,
             beam_damp: 0.0,
             beam_strength: 0.0,
