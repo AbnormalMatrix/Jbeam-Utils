@@ -718,6 +718,29 @@ fn main() {
                         if *kind == Key::E {
                             camera.translate(&(camera.up() * camera_speed))
                         }
+
+                        // delete node
+                        if *kind == Key::Delete || *kind == Key::Backspace {
+                            if node_selected {
+
+                                // remove beams connected to node
+                                let mut beams_to_remove = Vec::new();
+                                for (i, beam) in beams.iter().enumerate() {
+                                    if beam.id1 == nodes[node_selected_index].id || beam.id2 == nodes[node_selected_index].id {
+                                        beams_to_remove.push(i);
+                                    }
+                                }
+
+                                for beam in beams_to_remove.iter().rev() {
+                                    beams.remove(*beam);
+                                }
+                                
+
+                                nodes.remove(node_selected_index);
+                                node_selected = false;
+                                node_selected_index = 0;
+                            }
+                        }
                         
                         // camera orthographic view
 
@@ -1163,11 +1186,11 @@ fn main() {
                 .write(|| gui.render())
                 
 
-                .render(
-                    &camera,
-                    fender.into_iter(),
-                    &[&light0, &light1],
-                )
+                // .render(
+                //     &camera,
+                //     fender.into_iter(),
+                //     &[&light0, &light1],
+                // )
 
                 .render(
                     &camera,

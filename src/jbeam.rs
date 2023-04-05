@@ -29,6 +29,7 @@ fn parse_node_modifiers(rule: Pairs<Rule>, node: JNode) -> JNode {
                     for rule in rule.into_inner() {
                         if rule.as_rule() == Rule::number {
                             node.node_weight = rule.as_str().parse().unwrap();
+                            println!("nodeWeight: {}", rule.as_str());
                         }
                     }
 
@@ -55,14 +56,24 @@ fn parse_node_modifiers(rule: Pairs<Rule>, node: JNode) -> JNode {
 
                 },
                 Rule::node_group => {
-                    let mut node_groups: Vec<String> = Vec::new();
+
 
                     for rule in rule.into_inner() {
                         if rule.as_rule() == Rule::string {
-                            node_groups.push(rule.as_str().to_string().replace(r#"""#, ""));
+                            // check if the trimmed string is empty
+                            if rule.as_str().to_string().replace(r#"""#, "").is_empty() {
+                                // clear the vector and continue
+
+                                node.group.clear();
+                                continue;
+                            }
+                            // add the trimmed string to the vector if it is not already in it
+                            if !node.group.contains(&rule.as_str().to_string().replace(r#"""#, "")) {
+                                node.group.push(rule.as_str().to_string().replace(r#"""#, ""));
+                            }
+
                         }
                     }
-                    node.group.append(&mut node_groups);
                 },
                 Rule::node_friction_coef => {
 
@@ -240,7 +251,7 @@ fn parse_node_modifiers(rule: Pairs<Rule>, node: JNode) -> JNode {
         }
     }
 
-    println!("{:#?}", node);
+    // println!("{:#?}", node);
 
     return node;
 
@@ -300,7 +311,7 @@ pub fn parse_nodes(unparsed_file: String) -> Vec<JNode>{
                         // println!("{}, {:?}", id, coords);
 
                         nodes.push(node.clone());
-                        node = JNode::new();
+                        // node = JNode::new();
 
                     },
                     Rule::node_modifiers => {
@@ -364,12 +375,12 @@ impl JNode {
             id: "".to_owned(),
             position: (0.0, 0.0, 0.0),
             imported: true,
-            node_weight: 0.0,
+            node_weight: 25.0,
             collision: false,
             self_collision: false,
             group: Vec::new(),
             friction_coefficient: 1.0,
-            node_material: "Metal".to_owned(),
+            node_material: "|NM_METAL".to_owned(),
             fixed: false,
             // highest f32 value
             coupler_strength: 340282346638528859811704183484516925440.0,
@@ -402,7 +413,50 @@ impl JNode {
         } else {
             String::new()
         };
-        let data = format!(r#"["{}", {}, {}, {}, {{"nodeWeight":{}, "collision":{}, "selfCollision":{}, "frictionCoef":{}, {}}}],"#, self.id, self.position.0, self.position.2, self.position.1, self.node_weight, self.collision, self.self_collision, self.friction_coefficient, group_str);
+
+        let mut import_electrics_str = "[".to_string();
+
+        for ie in &self.import_electrics {
+            import_electrics_str = format!(r#""{}", "#, ie);
+        }
+        import_electrics_str = format!("{}]", import_electrics_str);
+
+        let mut import_inputs_str = "[".to_string();
+
+        for ii in &self.import_inputs {
+            import_inputs_str = format!(r#""{}", "#, ii);
+        }
+        import_inputs_str = format!("{}]", import_inputs_str);
+
+        let data = format!(r#"["{}", {}, {}, {}, {{"nodeWeight":{}, "collision":{}, "selfCollision":{}, "frictionCoef":{}, {}, "fixed":{}, "breakGroup":"{}", "importElectrics":{}, "importInputs":{}, "surfaceCoef":{}, "volumeCoef":{}, "noLoadCoef":{}, "fullLoadCoef":{}, "stribeckExponent":{}, "stribeckVelMult":{}, "softnessCoef":{}, "treadCoef":{}, "loadSensitivitySlope":{} }}],"#,
+            self.id,
+            self.position.0,
+            self.position.2,
+            self.position.1,
+            self.node_weight,
+            self.collision,
+            self.self_collision,
+            self.friction_coefficient,
+            group_str,
+            // self.node_material,
+            self.fixed,
+
+            self.break_group,
+
+            import_electrics_str,
+            import_inputs_str,
+            self.surface_coef,
+            self.volume_coef,
+            self.no_load_coef,
+            self.full_load_coef,
+            self.stribeck_exponent,
+            self.stribeck_vel_mult,
+            self.softness_coef,
+            self.tread_coef,
+
+            self.load_sensitivity_slope,
+
+        );
         println!("{}", data);
 
         data
