@@ -38,7 +38,7 @@ quote = _{ "\"" }
 // jbeam files can contain multiple parts
 // we know an object is a part if it has an information object
 
-part_values = _{ information | slot_type | slots | controller | soundscape | sounds | props | analog_odometer | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | slidenodes | rails | torsionbars | nodes | beams | triangles }
+part_values = _{ information | slot_type | slots | controller | soundscape | sounds | props | analog_odometer | refnodes | camera_chase | camera_external | cameras_internal | flexbodies | slidenodes | rails | torsionbars | nodes | beams | triangles | other_object }
 
 part = { string ~ ":" ~ "{" ~ information ~ part_values* ~ "}"}
 
@@ -315,6 +315,9 @@ triangle_triangle_type = { quote ~ "triangleType" ~ quote ~ ":" ~ string }
 triangle_lift_coef = { quote ~ "liftCoef" ~ quote ~ ":" ~ number }
 triangle_optional = { quote ~ "optional" ~ quote ~ ":" ~ boolean }
 triangle_break_group = { quote ~ "breakGroup" ~ quote ~ ":" ~ string }
+
+
+other_object = { string ~ ":" ~ ("{" ~ ( value ~ ":" ~ value )+ ~ "}"| "[" ~ value+ ~ "]" ) }
 
 parts = _{ SOI ~ "{" ~  part* ~ "}" ~ EOI }
 
