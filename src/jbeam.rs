@@ -510,6 +510,8 @@ pub struct JBeam {
     pub id1: String,
     pub id2: String,
     pub imported: bool,
+    pub node1_idx: usize,
+    pub node2_idx: usize,
     // optional arguments
     beam_type: String,
     beam_spring: f32,
@@ -544,6 +546,8 @@ impl JBeam {
             id1: String::new(),
             id2: String::new(),
             imported: true,
+            node1_idx: 0,
+            node2_idx: 0,
             beam_type: "NORMAL".to_owned(),
             beam_spring: 0.0,
             beam_damp: 0.0,
@@ -606,9 +610,11 @@ impl JBeam {
     }
 
     pub fn get_3d_object(&self, context: &Context, nodes: &Vec<JNode>) -> Sprites {
-        let pos1 = nodes[get_node_by_id(self.id1.clone(), nodes).unwrap()].position;
-        let pos2 = nodes[get_node_by_id(self.id2.clone(), nodes).unwrap()].position;
+        // let pos1 = nodes[get_node_by_id(self.id1.clone(), nodes).unwrap()].position;
+        // let pos2 = nodes[get_node_by_id(self.id2.clone(), nodes).unwrap()].position;
 
+        let pos1 = nodes[self.node1_idx].position;
+        let pos2 = nodes[self.node2_idx].position;
 
 
         let (x, y, z) = get_midpoint(pos1.0, pos2.0, pos1.1, pos2.1, pos1.2, pos2.2);
@@ -892,12 +898,16 @@ pub fn parse_beams(unparsed_file: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Ve
                         let mut node1_exists = false;
                         let mut node2_exists = false;
 
-                        for node in nodes {
+
+
+                        for (i, node) in nodes.iter().enumerate() {
                             if node.id == beam.id1 {
                                 node1_exists = true;
+                                beam.node1_idx = i;
                             }
                             if node.id == beam.id2 {
                                 node2_exists = true;
+                                beam.node2_idx = i;
                             }
                         }
 
@@ -987,11 +997,17 @@ pub fn new_beam(nodes: &Vec<JNode>, beams: &Vec<JBeam>, id1: String, id2: String
     let mut node_1_found = false;
     let mut node_2_found = false;
 
-    for node in nodes {
+    let mut node_1_idx: usize = 0;
+    let mut node_2_idx: usize = 0;
+
+    for (i, node) in nodes.iter().enumerate() {
         if node.id == id1 {
             node_1_found = true;
+            node_1_idx = i;
+
         } else if node.id == id2 {
             node_2_found = true;
+            node_2_idx = i;
         }
     }
 
@@ -1011,6 +1027,8 @@ pub fn new_beam(nodes: &Vec<JNode>, beams: &Vec<JBeam>, id1: String, id2: String
     let mut beam = JBeam::new();
     beam.id1 = id1;
     beam.id2 = id2;
+    beam.node1_idx = node_1_idx;
+    beam.node2_idx = node_2_idx;
     beam.imported = false;
 
     return Some(beam);
