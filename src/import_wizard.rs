@@ -37,7 +37,7 @@ impl Default for ImportVars {
         }
     }
 }
-    
+
 
 
 pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars, nodes: &mut Vec<jbeam::JNode>, beams: &mut Vec<jbeam::JBeam>, invalid_beams: &mut Vec<jbeam::JBeam>) {

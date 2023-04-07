@@ -342,7 +342,7 @@ fn main() {
                         main_ui::show_parts_gui(gui_context, &mut big_gui_vars);
                     },
                     main_ui::BigGuiMode::Nodes => {
-                        main_ui::show_nodes_gui(gui_context, &mut big_gui_vars, selected_node_id, node_selected_index, node_selected, nodes.clone());
+                        main_ui::show_nodes_gui(gui_context, &mut big_gui_vars, selected_node_id, node_selected_index, node_selected, &mut nodes);
                     }
                     main_ui::BigGuiMode::ModManager => {
                         main_ui::show_mod_manager(gui_context, &mut big_gui_vars);
