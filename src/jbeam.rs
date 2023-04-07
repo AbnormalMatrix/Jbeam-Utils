@@ -261,63 +261,64 @@ fn parse_node_modifiers(rule: Pairs<Rule>, node: JNode) -> JNode {
 pub fn parse_nodes(unparsed_file: String) -> Vec<JNode>{
     
     
-    let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!").next().unwrap();
+    let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!");
 
     let mut nodes: Vec<JNode> = Vec::new();
 
     let mut node = JNode::new();
-
-    for rule in file.into_inner() {
-        if rule.as_rule() == Rule::nodes {
-
-
-            
-
-            for rule in rule.into_inner() {
-                match rule.as_rule() {
-                    Rule::node => {
+    for rule in file {
+        for rule in rule.into_inner() {
+            if rule.as_rule() == Rule::nodes {
 
 
-                        let mut coord_counter = 0;
-                        for rule in rule.into_inner() {
-                            match rule.as_rule() {
-                                Rule::string => {
-                                    node.id = rule.as_str().to_string().replace(r#"""#, "");
+                
 
-                                },
-                                Rule::number => {
-                                    let value: f32 = rule.as_str().parse().unwrap();
-                                    match coord_counter {
-                                        0 => {
-                                            node.position.0 = value;
-                                        },
-                                        1 => {
-                                            node.position.2 = value;
-                                        },
-                                        2 => {
-                                            node.position.1 = value;
-                                        },
-                                        _=> ()
+                for rule in rule.into_inner() {
+                    match rule.as_rule() {
+                        Rule::node => {
+
+
+                            let mut coord_counter = 0;
+                            for rule in rule.into_inner() {
+                                match rule.as_rule() {
+                                    Rule::string => {
+                                        node.id = rule.as_str().to_string().replace(r#"""#, "");
+
+                                    },
+                                    Rule::number => {
+                                        let value: f32 = rule.as_str().parse().unwrap();
+                                        match coord_counter {
+                                            0 => {
+                                                node.position.0 = -1.0 * value;
+                                            },
+                                            1 => {
+                                                node.position.2 = value;
+                                            },
+                                            2 => {
+                                                node.position.1 = value;
+                                            },
+                                            _=> ()
+                                        }
+                                        coord_counter += 1;
+                                    },
+                                    Rule::node_modifiers => {
+                                        node = parse_node_modifiers(rule.into_inner(), node)
                                     }
-                                    coord_counter += 1;
-                                },
-                                Rule::node_modifiers => {
-                                    node = parse_node_modifiers(rule.into_inner(), node)
+                                    _=> ()
                                 }
-                                _=> ()
                             }
-                        }
 
-                        // println!("{}, {:?}", id, coords);
+                            // println!("{}, {:?}", id, coords);
 
-                        nodes.push(node.clone());
-                        // node = JNode::new();
+                            nodes.push(node.clone());
+                            // node = JNode::new();
 
-                    },
-                    Rule::node_modifiers => {
-                        node = parse_node_modifiers(rule.into_inner(), node);
-                    },
-                    _ => ()
+                        },
+                        Rule::node_modifiers => {
+                            node = parse_node_modifiers(rule.into_inner(), node);
+                        },
+                        _ => ()
+                    }
                 }
             }
         }
@@ -516,7 +517,7 @@ pub struct JBeam {
     beam_type: String,
     beam_spring: f32,
     beam_damp: f32,
-    beam_strength: f32,
+    beam_strength: String,
     beam_deform: f32,
     beam_compression: f32,
     beam_compression_range: f32,
@@ -548,10 +549,10 @@ impl JBeam {
             imported: true,
             node1_idx: 0,
             node2_idx: 0,
-            beam_type: "NORMAL".to_owned(),
-            beam_spring: 0.0,
-            beam_damp: 0.0,
-            beam_strength: 0.0,
+            beam_type: "|NORMAL".to_owned(),
+            beam_spring: 4300000.0,
+            beam_damp: 580.0,
+            beam_strength: "FLT_MAX".to_owned(),
             beam_deform: 0.0,
             beam_compression: 0.0,
             beam_compression_range: 0.0,
@@ -576,34 +577,37 @@ impl JBeam {
     }
     pub fn write(&self) -> String {
 
-        let data = format!(r#"["{}", "{}" {{"beamType":{}, "beamSpring":{}, "beamDamp":{}, "beamStrength":{}, "beamDeform":{}, "beamPrecompression":{}, "beamPrecompressionRange":{}, "beamPrecompressionTime":{}, "breakGroup":{}, "breakGroupType":{}, "name":{}, "dampCutoffHz":{}, "deformLimit":{}, "deformLimitExpansion":{}, "optional":{}, "deformGroup":{}, "deformationTriggerRatio":{}, "soundFile":{}, "colorFactor":{}, "attackFactor":{}, "volumeFactor":{}, "decayFactor":{}, "pitchFactor":{}, "maxStress":{} }}],"#,
-            self.id1,
-            self.id2,
-            self.beam_type,
-            self.beam_spring,
-            self.beam_damp,
-            self.beam_strength,
-            self.beam_deform,
-            self.beam_compression,
-            self.beam_compression_range,
-            self.beam_compression_time,
-            self.break_group,
-            self.break_group_type,
-            self.name,
-            self.damp_cutoff_hz,
-            self.deform_limit,
-            self.deform_limt_expansion,
-            self.optional,
-            self.deform_group,
-            self.deformation_trigger_ratio,
-            self.sound_file,
-            self.color_factor,
-            self.attack_factor,
-            self.volume_factor,
-            self.decay_factor,
-            self.pitch_factor,
-            self.max_stress,
-        );
+        let beam_strength = format!(r#""{}""#, self.beam_strength);
+
+        // let data = format!(r#"["{}", "{}" {{"beamType":"{}", "beamSpring":{}, "beamDamp":{}, "beamStrength":{}, "beamDeform":{}, "beamPrecompression":{}, "beamPrecompressionRange":{}, "beamPrecompressionTime":{}, "breakGroup":"{}", "breakGroupType":{}, "name":"{}", "dampCutoffHz":{}, "deformLimit":{}, "deformLimitExpansion":{}, "optional":{}, "deformGroup":"{}", "deformationTriggerRatio":{}, "soundFile":"{}", "colorFactor":{}, "attackFactor":{}, "volumeFactor":{}, "decayFactor":{}, "pitchFactor":{}, "maxStress":{} }}],"#,
+        //     self.id1,
+        //     self.id2,
+        //     self.beam_type,
+        //     self.beam_spring,
+        //     self.beam_damp,
+        //     beam_strength,
+        //     self.beam_deform,
+        //     self.beam_compression,
+        //     self.beam_compression_range,
+        //     self.beam_compression_time,
+        //     self.break_group,
+        //     self.break_group_type,
+        //     self.name,
+        //     self.damp_cutoff_hz,
+        //     self.deform_limit,
+        //     self.deform_limt_expansion,
+        //     self.optional,
+        //     self.deform_group,
+        //     self.deformation_trigger_ratio,
+        //     self.sound_file,
+        //     self.color_factor,
+        //     self.attack_factor,
+        //     self.volume_factor,
+        //     self.decay_factor,
+        //     self.pitch_factor,
+        //     self.max_stress,
+        // );
+        let data = format!(r#"["{}", "{}"]"#, self.id1, self.id2);
         println!("{}", data);
         data
 
@@ -704,7 +708,9 @@ fn parse_beam_modifiers(rule: Pairs<Rule>, beam: JBeam) -> JBeam {
                 Rule::beam_beam_strength => {
                     for rule in rule.into_inner() {
                         if rule.as_rule() == Rule::number {
-                            beam.beam_strength = rule.as_str().parse().unwrap();
+                            beam.beam_strength = rule.as_str().to_string().replace(r#"""#, "");
+                        } else if rule.as_rule() == Rule::string {
+                            beam.beam_strength = rule.as_str().to_string().replace(r#"""#, "");
                         }
                     }
                 },
@@ -858,7 +864,7 @@ fn parse_beam_modifiers(rule: Pairs<Rule>, beam: JBeam) -> JBeam {
 }
 
 pub fn parse_beams(unparsed_file: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Vec<JBeam>) {
-    let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!").next().unwrap();
+    let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!");
 
     let mut beams: Vec<JBeam> = Vec::new();
 
@@ -866,68 +872,71 @@ pub fn parse_beams(unparsed_file: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Ve
 
     let mut beam = JBeam::new();
 
-    for rule in file.into_inner() {
-        if rule.as_rule() == Rule::beams {
+    for rule in file {
+
+        for rule in rule.into_inner() {
+            if rule.as_rule() == Rule::beams {
 
 
-            
+                
 
-            for rule in rule.into_inner() {
-                match rule.as_rule() {
-                    Rule::beam => {
+                for rule in rule.into_inner() {
+                    match rule.as_rule() {
+                        Rule::beam => {
 
 
-                        for rule in rule.into_inner() {
-                            match rule.as_rule() {
-                                Rule::string => {
-                                    if beam.id1.is_empty() {
-                                        beam.id1 = rule.as_str().to_string().replace(r#"""#, "");
-                                    } else {
-                                        beam.id2 = rule.as_str().to_string().replace(r#"""#, "");
+                            for rule in rule.into_inner() {
+                                match rule.as_rule() {
+                                    Rule::string => {
+                                        if beam.id1.is_empty() {
+                                            beam.id1 = rule.as_str().to_string().replace(r#"""#, "");
+                                        } else {
+                                            beam.id2 = rule.as_str().to_string().replace(r#"""#, "");
+                                        }
+                                    },
+                                    Rule::beam_modifiers => {
+                                        beam = parse_beam_modifiers(rule.into_inner(), beam);
                                     }
-                                },
-                                Rule::beam_modifiers => {
-                                    beam = parse_beam_modifiers(rule.into_inner(), beam);
+                                    _=> ()
                                 }
-                                _=> ()
                             }
-                        }
 
-                        // check if nodes exist
+                            // check if nodes exist
 
-                        let mut node1_exists = false;
-                        let mut node2_exists = false;
-
+                            let mut node1_exists = false;
+                            let mut node2_exists = false;
 
 
-                        for (i, node) in nodes.iter().enumerate() {
-                            if node.id == beam.id1 {
-                                node1_exists = true;
-                                beam.node1_idx = i;
+
+                            for (i, node) in nodes.iter().enumerate() {
+                                if node.id == beam.id1 {
+                                    node1_exists = true;
+                                    beam.node1_idx = i;
+                                }
+                                if node.id == beam.id2 {
+                                    node2_exists = true;
+                                    beam.node2_idx = i;
+                                }
                             }
-                            if node.id == beam.id2 {
-                                node2_exists = true;
-                                beam.node2_idx = i;
+
+                            if node1_exists && node2_exists {
+                                beams.push(beam.clone());
+                                println!("Valid beam");
+                            } else {
+                                invalid_beams.push(beam.clone());
+                                println!("Invalid beam");
                             }
-                        }
-
-                        if node1_exists && node2_exists {
-                            beams.push(beam.clone());
-                            println!("Valid beam");
-                        } else {
-                            invalid_beams.push(beam.clone());
-                            println!("Invalid beam");
-                        }
 
 
 
-                        beam = JBeam::new();
+                            beam = JBeam::new();
 
-                    },
-                    Rule::beam_modifiers => {
-                        beam = parse_beam_modifiers(rule.into_inner(), beam);
-                    },
-                    _ => ()
+                        },
+                        Rule::beam_modifiers => {
+                            beam = parse_beam_modifiers(rule.into_inner(), beam);
+                        },
+                        _ => ()
+                    }
                 }
             }
         }
@@ -949,6 +958,7 @@ pub fn get_distance(a: Vec3, b: Vec3) -> f32 {
 }
 
 pub fn get_closest_node_index(nodes: &Vec<JNode>, pos: Vec3) -> Option<usize> {
+
     let mut closest_node_index: Option<usize> = None;
     let mut closest_distance: f32 = 0.0;
 

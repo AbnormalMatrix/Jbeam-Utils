@@ -38,7 +38,7 @@ enum OrthoMode {
 
 
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 enum SnappingMode {
     Off,
     Grid,
@@ -168,6 +168,7 @@ fn main() {
 
 
 
+
     
     
     //let mut control = OrbitControl::new(*camera.target(), 1.0, 100.0);
@@ -225,8 +226,14 @@ fn main() {
     let model = loaded.deserialize("fender.obj").unwrap();
 
     // load the fenders
+    
+    let fender_material = PhysicalMaterial::new_transparent(&context, &CpuMaterial {
+        albedo: Color { r: 0, g: 0, b: 0, a: 128 }, ..Default::default()
+    });
 
-    let mut fender = Model::<PhysicalMaterial>::new(&context, &model).unwrap();
+    let mut fender = Model::<PhysicalMaterial>::new(&context, &model).unwrap().remove(0);
+
+    
 
     let mut sphere = Gm::new(
         Mesh::new(&context, &CpuMesh::sphere(16)),
@@ -282,7 +289,7 @@ fn main() {
     let light0 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, -0.5, -0.5));
     let light1 = DirectionalLight::new(&context, 1.0, Color::WHITE, &vec3(0.0, 0.5, 0.5));
 
-
+    
     window.render_loop(move |mut frame_input| {
 
         if show_big_gui {
@@ -423,6 +430,18 @@ fn main() {
 
                         ui.separator();
                         ui.add(Slider::new(&mut camera_speed, 0.01..=1.0).text("Camera Speed"));
+                        // snapping mode combo box
+
+                        ComboBox::from_label("Select one!")
+                        .selected_text(format!("{:?}", snapping_mode))
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(&mut snapping_mode, SnappingMode::Increment, "Increment");
+                            ui.selectable_value(&mut snapping_mode, SnappingMode::Off, "Off");
+
+                        }
+                        );
+                        ui.add(Slider::new(&mut snap_increment, 0.01..=1.0).text("Snap Increment"));
+
                         ui.separator();
                         ui.heading("Nodes");
                         ui.separator();
@@ -1192,6 +1211,8 @@ fn main() {
                 //     &[&light0, &light1],
                 // )
 
+                
+
                 .render(
                     &camera,
 
@@ -1235,6 +1256,7 @@ fn main() {
                 FrameOutput::default();
 
             }
+            fender.render_with_material(&fender_material, &camera, &[&light0, &light1]);
 
 
                 
