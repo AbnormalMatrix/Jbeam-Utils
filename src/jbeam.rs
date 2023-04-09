@@ -1111,6 +1111,78 @@ impl JTri {
         Gm::new(Mesh::new(&context, &mesh), ColorMaterial::default())
 
     }
+
+    pub fn write(&self) -> String {
+        format!("[{}, {}, {}]", self.id1, self.id2, self.id3)
+    }
 }
 
 
+pub fn parse_tris(unparsed_file: String, nodes: &Vec<JNode>) -> Vec<JTri> {
+    let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!");
+
+    let mut tris: Vec<JTri> = Vec::new();
+
+
+
+    let mut tri = JTri::new();
+
+    for rule in file {
+
+        for rule in rule.into_inner() {
+            if rule.as_rule() == Rule::triangles {
+
+                
+                
+
+                for rule in rule.into_inner() {
+                    if rule.as_rule() == Rule::triangle {
+                        println!("{:?}", rule.as_rule());
+                        let mut nodes_found = (false, false, false);
+                        for rule in rule.into_inner() {
+                            match rule.as_rule() {
+
+                                Rule::string => {
+                                    if nodes_found.0 == false {
+                                        let idx = get_node_by_id(rule.as_str().to_string().replace(r#"""#, ""), nodes);
+                                        println!("{:?}", idx);
+                                        if let Some(idx) = idx {
+                                            tri.id1 = idx;
+                                            nodes_found.0 = true;
+                                        }
+                                    } else if nodes_found.1 == false {
+                                        let idx = get_node_by_id(rule.as_str().to_string().replace(r#"""#, ""), nodes);
+                                        if let Some(idx) = idx {
+                                            tri.id2 = idx;
+                                            nodes_found.1 = true;
+                                        }
+                                    } else if nodes_found.2 == false {
+                                        let idx = get_node_by_id(rule.as_str().to_string().replace(r#"""#, ""), nodes);
+                                        if let Some(idx) = idx {
+                                            tri.id3 = idx;
+                                            nodes_found.2 = true;
+                                        }
+                                    }
+                                },
+        
+                                _=> ()
+        
+                            }
+                        }
+                        if nodes_found.0 && nodes_found.1 && nodes_found.2 {
+                            tris.push(tri.clone());
+                            println!("{:#?}", tri);
+                        }
+                        tri = JTri::new();
+                    }
+
+                }
+
+
+            }
+        }
+    }
+
+    tris
+    
+}

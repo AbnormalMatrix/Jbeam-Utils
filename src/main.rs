@@ -722,7 +722,9 @@ fn main() {
 
             for tri in &tris {
                 let tri_object = tri.get_3d_object(&context, &nodes);
+
                 tri_objects.push(tri_object);
+                
             }
 
             // handle input
@@ -1229,7 +1231,7 @@ fn main() {
                 //     &[&light0, &light1],
                 // )
 
-                
+                .render(&camera, tri_objects.iter_mut(), &[&light0, &light1])
 
                 .render(
                     &camera,
@@ -1250,9 +1252,9 @@ fn main() {
                 .render(&camera, axes.into_iter(), &[&light0, &light1]);
 
             // render the tris
-            for tri in &tri_objects {
-                tri.render_with_material(&fender_material, &camera, &[&light0, &light1])
-            }
+            // for tri in &tri_objects {
+            //     tri.render_with_material(&fender_material, &camera, &[&light0, &light1])
+            // }
 
 
             // only show the floating window when required because it is annoying
@@ -1267,7 +1269,7 @@ fn main() {
                     frame_input.device_pixel_ratio,
                     |gui_context| {
 
-                        import_wizard::show_import_gui(gui_context, &mut import_vars, &mut nodes, &mut beams, &mut invalid_beams);
+                        import_wizard::show_import_gui(gui_context, &mut import_vars, &mut nodes, &mut beams, &mut invalid_beams, &mut tris);
                 
                 });
 

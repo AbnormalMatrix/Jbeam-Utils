@@ -29,6 +29,7 @@ pub struct ImportVars {
     rename_dupes: bool,
     import_nodes: bool,
     import_beams: bool,
+    import_tris: bool,
 }
 
 impl Default for ImportVars {
@@ -38,13 +39,14 @@ impl Default for ImportVars {
             rename_dupes: false,
             import_nodes: true,
             import_beams: true,
+            import_tris: true,
         }
     }
 }
 
 
 
-pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars, nodes: &mut Vec<jbeam::JNode>, beams: &mut Vec<jbeam::JBeam>, invalid_beams: &mut Vec<jbeam::JBeam>) {
+pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars, nodes: &mut Vec<jbeam::JNode>, beams: &mut Vec<jbeam::JBeam>, invalid_beams: &mut Vec<jbeam::JBeam>, tris: &mut Vec<jbeam::JTri>) {
     Window::new("JBeam Importer").anchor(Align2::CENTER_TOP, [0.0, 0.0]).show(&gui_context, |ui| {
 
         if ui.button("browse...").clicked() {
@@ -68,6 +70,7 @@ pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars
         ui.checkbox(&mut import_vars.rename_dupes, "Rename Duplicates");
         ui.checkbox(&mut import_vars.import_nodes, "Import Nodes");
         ui.checkbox(&mut import_vars.import_beams, "Import Beams");
+        ui.checkbox(&mut import_vars.import_tris, "Import Triangles");
 
         if ui.button("import").clicked() {
             // load the file
@@ -105,10 +108,17 @@ pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars
             }
             
             if import_vars.import_beams {
-                let (mut new_valid_beams, mut new_invalid_beams) = jbeam::parse_beams(file_contents, nodes);
+                let (mut new_valid_beams, mut new_invalid_beams) = jbeam::parse_beams(file_contents.clone(), nodes);
 
                 beams.append(&mut new_valid_beams);
                 invalid_beams.append(&mut new_invalid_beams);
+            }
+
+            if import_vars.import_tris {
+                let mut new_tris = jbeam::parse_tris(file_contents, nodes);
+
+                tris.append(&mut new_tris);
+
             }
 
         }
