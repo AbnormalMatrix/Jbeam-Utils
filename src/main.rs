@@ -60,6 +60,7 @@ fn main() {
     let mut invalid_beams: Vec<jbeam::JBeam> = Vec::new();
 
     
+    let mut tris: Vec<jbeam::JTri> = Vec::new();
 
 
     
@@ -665,6 +666,16 @@ fn main() {
                             jbeam::write_user_created_beams(&beams);
                         }
 
+                        ui.separator();
+                        ui.heading("Triangles");
+                        if ui.button("test tri").clicked() {
+                            let mut tri = jbeam::JTri::new();
+                            tri.id1 = 0;
+                            tri.id2 = 1;
+                            tri.id3 = 2;
+
+                            tris.push(tri);
+                        }
 
                     });
 
@@ -694,6 +705,8 @@ fn main() {
 
             let mut beam_objects = Vec::new();
 
+            let mut tri_objects = Vec::new();
+
             for beam in &beams {
                 let beam_object = Gm{
                     geometry: beam.get_3d_object(&context, &nodes),
@@ -705,6 +718,11 @@ fn main() {
             for node in &nodes {
                 let node_object = node.get_3d_object(&context, &node_material, &selected_node_material);
                 node_objects.push(node_object);
+            }
+
+            for tri in &tris {
+                let tri_object = tri.get_3d_object(&context, &nodes);
+                tri_objects.push(tri_object);
             }
 
             // handle input
@@ -1231,6 +1249,10 @@ fn main() {
                 )
                 .render(&camera, axes.into_iter(), &[&light0, &light1]);
 
+            // render the tris
+            for tri in &tri_objects {
+                tri.render_with_material(&fender_material, &camera, &[&light0, &light1])
+            }
 
 
             // only show the floating window when required because it is annoying

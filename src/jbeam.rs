@@ -1079,3 +1079,38 @@ pub fn write_user_created_beams(beams: &Vec<JBeam>) {
 
 }
 
+
+
+#[derive(Debug, Clone)]
+pub struct JTri {
+    pub id1: usize,
+    pub id2: usize,
+    pub id3: usize,
+}
+
+impl JTri {
+    pub fn new() -> JTri {
+        JTri {
+            id1: 0,
+            id2: 0,
+            id3: 0,
+        }
+    }
+    pub fn get_3d_object(&self, context: &Context, nodes: &Vec<JNode>) -> Gm<Mesh, ColorMaterial> {
+        let positions = vec![
+            vec3(nodes[self.id1].position.0, nodes[self.id1].position.1, nodes[self.id1].position.2),
+            vec3(nodes[self.id2].position.0, nodes[self.id2].position.1, nodes[self.id2].position.2),
+            vec3(nodes[self.id3].position.0, nodes[self.id3].position.1, nodes[self.id3].position.2),
+        ];
+
+        let mesh = CpuMesh {
+            positions: Positions::F32(positions),
+            ..Default::default()
+        };
+
+        Gm::new(Mesh::new(&context, &mesh), ColorMaterial::default())
+
+    }
+}
+
+

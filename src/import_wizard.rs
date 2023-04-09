@@ -27,6 +27,8 @@ use crate::jbeam;
 pub struct ImportVars {
     path: PathBuf,
     rename_dupes: bool,
+    import_nodes: bool,
+    import_beams: bool,
 }
 
 impl Default for ImportVars {
@@ -34,6 +36,8 @@ impl Default for ImportVars {
         Self {
             path: PathBuf::new(),
             rename_dupes: false,
+            import_nodes: true,
+            import_beams: true,
         }
     }
 }
@@ -62,44 +66,50 @@ pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars
         ui.separator();
 
         ui.checkbox(&mut import_vars.rename_dupes, "Rename Duplicates");
+        ui.checkbox(&mut import_vars.import_nodes, "Import Nodes");
+        ui.checkbox(&mut import_vars.import_beams, "Import Beams");
 
         if ui.button("import").clicked() {
             // load the file
             let file_contents = fs::read_to_string(&import_vars.path).unwrap();
 
-            let mut new_nodes = jbeam::parse_nodes(file_contents.clone());
+            if import_vars.import_nodes {
+                let mut new_nodes = jbeam::parse_nodes(file_contents.clone());
 
             
 
-            // handle duplicate nodes
-
-            for new_node in new_nodes.iter_mut() {
-
-                let mut duplicate_flag = false;
-
-                for existing_node in nodes.iter() {
-                    
-                    if new_node.id == existing_node.id {
-                        duplicate_flag = true;
-                        break;
+                // handle duplicate nodes
+    
+                for new_node in new_nodes.iter_mut() {
+    
+                    let mut duplicate_flag = false;
+    
+                    for existing_node in nodes.iter() {
+                        
+                        if new_node.id == existing_node.id {
+                            duplicate_flag = true;
+                            break;
+                        }
                     }
-                }
-
-                if duplicate_flag {
-                    if import_vars.rename_dupes {
-                        // just stick a d on the end for now
-                        new_node.id = format!("{}{}", new_node.id, "d");
+    
+                    if duplicate_flag {
+                        if import_vars.rename_dupes {
+                            // just stick a d on the end for now
+                            new_node.id = format!("{}{}", new_node.id, "d");
+                            nodes.push(new_node.clone());
+                        }
+                    } else {
                         nodes.push(new_node.clone());
                     }
-                } else {
-                    nodes.push(new_node.clone());
                 }
             }
             
-            let (mut new_valid_beams, mut new_invalid_beams) = jbeam::parse_beams(file_contents, nodes);
+            if import_vars.import_beams {
+                let (mut new_valid_beams, mut new_invalid_beams) = jbeam::parse_beams(file_contents, nodes);
 
-            beams.append(&mut new_valid_beams);
-            invalid_beams.append(&mut new_invalid_beams);
+                beams.append(&mut new_valid_beams);
+                invalid_beams.append(&mut new_invalid_beams);
+            }
 
         }
 
