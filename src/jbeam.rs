@@ -258,15 +258,30 @@ fn parse_node_modifiers(rule: Pairs<Rule>, node: JNode) -> JNode {
     
 }
 
-pub fn parse_nodes(unparsed_file: String) -> Vec<JNode>{
+pub fn parse_nodes(unparsed_file: String) -> (Vec<JNode>, Vec<String>) {
     
     
     let file = JBeamParser::parse(Rule::parts, &unparsed_file).expect("Failed to parse JBeam!");
 
     let mut nodes: Vec<JNode> = Vec::new();
+    let mut part_name = String::new();
+
+    // list of part names:
+    let mut part_names: Vec<String> = Vec::new();
 
     let mut node = JNode::new();
     for rule in file {
+
+
+        if let Some(name) = rule.clone().into_inner().next() {
+            part_name = name.as_str().to_string().replace(r#"""#, "");
+            // if the part name is not in the list, add it
+            if !part_names.contains(&part_name) {
+                println!("{}", part_name);
+                part_names.push(part_name.clone());
+            }
+        }
+
         for rule in rule.into_inner() {
             if rule.as_rule() == Rule::nodes {
 
@@ -309,7 +324,7 @@ pub fn parse_nodes(unparsed_file: String) -> Vec<JNode>{
                             }
 
                             // println!("{}, {:?}", id, coords);
-
+                            node.parent_part = part_name.clone();
                             nodes.push(node.clone());
                             // node = JNode::new();
 
@@ -324,7 +339,7 @@ pub fn parse_nodes(unparsed_file: String) -> Vec<JNode>{
         }
     }
 
-    nodes
+    (nodes, part_names)
 }
 
 
@@ -338,6 +353,9 @@ pub struct JNode {
     pub id: String,
     pub position: (f32, f32, f32),
     pub imported: bool,
+
+    pub parent_part: String,
+
     // optional arguments
     pub node_weight: f64,
     pub collision: bool,
@@ -376,6 +394,7 @@ impl JNode {
             id: "".to_owned(),
             position: (0.0, 0.0, 0.0),
             imported: true,
+            parent_part: "".to_owned(),
             node_weight: 25.0,
             collision: false,
             self_collision: false,
@@ -458,7 +477,7 @@ impl JNode {
             self.load_sensitivity_slope,
 
         );
-        println!("{}", data);
+        // println!("{}", data);
 
         data
 
@@ -608,7 +627,7 @@ impl JBeam {
         //     self.max_stress,
         // );
         let data = format!(r#"["{}", "{}"]"#, self.id1, self.id2);
-        println!("{}", data);
+        // println!("{}", data);
         data
 
     }
@@ -921,10 +940,10 @@ pub fn parse_beams(unparsed_file: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Ve
 
                             if node1_exists && node2_exists {
                                 beams.push(beam.clone());
-                                println!("Valid beam");
+                                // println!("Valid beam");
                             } else {
                                 invalid_beams.push(beam.clone());
-                                println!("Invalid beam");
+                                // println!("Invalid beam");
                             }
 
 
@@ -1022,13 +1041,13 @@ pub fn new_beam(nodes: &Vec<JNode>, beams: &Vec<JBeam>, id1: String, id2: String
     }
 
     if !node_1_found || !node_2_found {
-        println!("Invalid node ids!");
+        // println!("Invalid node ids!");
         return None;
     }
 
     for beam in beams {
         if beam.id1 == id1 && beam.id2 == id2 {
-            println!("This beam already exists!");
+            // println!("This beam already exists!");
             return None;
             
         }
@@ -1059,7 +1078,7 @@ pub fn write_user_created_nodes(nodes: &Vec<JNode>) {
 
         }
     }
-    println!("{}", export_string);
+    // println!("{}", export_string);
     fs::write("created_nodes.txt", export_string).expect("Could not write to file!");
 }
 
@@ -1073,7 +1092,7 @@ pub fn write_user_created_beams(beams: &Vec<JBeam>) {
         }
     }
 
-    println!("{}", export_string);
+    // println!("{}", export_string);
     fs::write("created_beams.txt", export_string).expect("Could not write to file!");
 
 
@@ -1102,9 +1121,15 @@ impl JTri {
             vec3(nodes[self.id2].position.0, nodes[self.id2].position.1, nodes[self.id2].position.2),
             vec3(nodes[self.id3].position.0, nodes[self.id3].position.1, nodes[self.id3].position.2),
         ];
+        let colors = vec![
+            Color::new(255, 0, 0, 255), // bottom right
+            Color::new(0, 255, 0, 255), // bottom left
+            Color::new(0, 0, 255, 255), // top
+        ];
 
         let mesh = CpuMesh {
             positions: Positions::F32(positions),
+            colors: Some(colors),
             ..Default::default()
         };
 
@@ -1137,7 +1162,7 @@ pub fn parse_tris(unparsed_file: String, nodes: &Vec<JNode>) -> Vec<JTri> {
 
                 for rule in rule.into_inner() {
                     if rule.as_rule() == Rule::triangle {
-                        println!("{:?}", rule.as_rule());
+                        // println!("{:?}", rule.as_rule());
                         let mut nodes_found = (false, false, false);
                         for rule in rule.into_inner() {
                             match rule.as_rule() {
@@ -1145,7 +1170,7 @@ pub fn parse_tris(unparsed_file: String, nodes: &Vec<JNode>) -> Vec<JTri> {
                                 Rule::string => {
                                     if nodes_found.0 == false {
                                         let idx = get_node_by_id(rule.as_str().to_string().replace(r#"""#, ""), nodes);
-                                        println!("{:?}", idx);
+                                        // println!("{:?}", idx);
                                         if let Some(idx) = idx {
                                             tri.id1 = idx;
                                             nodes_found.0 = true;
@@ -1171,7 +1196,7 @@ pub fn parse_tris(unparsed_file: String, nodes: &Vec<JNode>) -> Vec<JTri> {
                         }
                         if nodes_found.0 && nodes_found.1 && nodes_found.2 {
                             tris.push(tri.clone());
-                            println!("{:#?}", tri);
+                            // println!("{:#?}", tri);
                         }
                         tri = JTri::new();
                     }

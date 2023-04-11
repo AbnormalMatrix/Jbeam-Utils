@@ -15,7 +15,13 @@ extern crate pest_derive;
 #[derive(PartialEq)]
 enum EditorMode {
     Normal,
-    Move
+    Move,
+}
+
+#[derive(PartialEq)]
+enum CreateMode {
+    Beams,
+    Tris,
 }
 
 #[derive(PartialEq)]
@@ -45,6 +51,11 @@ enum SnappingMode {
     Increment,
 }
 
+#[derive(PartialEq, Debug)]
+enum SelectMode {
+    Single,
+    Part,
+}
 
 fn main() {
 
@@ -62,10 +73,18 @@ fn main() {
     
     let mut tris: Vec<jbeam::JTri> = Vec::new();
 
+    let mut parts: Vec<String> = Vec::new();
 
-    
+
+    let mut multi_select_idxs: Vec<usize> = Vec::new();
+
+    let mut show_nodes = true;
+    let mut show_beams = true;
+    let mut show_tris = true;
     
     // settings
+
+    let mut select_mode = SelectMode::Single;
 
     let mut camera_speed = 0.1;
 
@@ -127,6 +146,8 @@ fn main() {
     let mut big_gui_vars = main_ui::UiVariables::new();
 
 
+
+
     let window = Window::new(WindowSettings {
         title: "JBeam Editor".to_string(),
         max_size: Some((1280, 720)),
@@ -134,8 +155,10 @@ fn main() {
     })
     .unwrap();
     let context = window.gl();
+    
 
     let mut gui = three_d::GUI::new(&context);
+
 
     let mut gui_floating = three_d::GUI::new(&context);
 
@@ -340,7 +363,7 @@ fn main() {
 
                 match big_gui_mode {
                     main_ui::BigGuiMode::Parts => {
-                        main_ui::show_parts_gui(gui_context, &mut big_gui_vars);
+                        main_ui::show_parts_gui(gui_context, &mut big_gui_vars, &mut parts, &mut nodes, &mut multi_select_idxs);
                     },
                     main_ui::BigGuiMode::Nodes => {
                         main_ui::show_nodes_gui(gui_context, &mut big_gui_vars, selected_node_id, node_selected_index, node_selected, &mut nodes);
@@ -409,6 +432,22 @@ fn main() {
                             } else if editor_mode == EditorMode::Move {
                                 ui.label("Move");
                             }
+                        });
+                        
+                        ui.horizontal(|ui| {
+                            egui::ComboBox::from_label("Select Mode")
+                                .selected_text(format!("{:?}", select_mode))
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut select_mode, SelectMode::Single, "Single");
+                                    ui.selectable_value(&mut select_mode, SelectMode::Part, "Part");
+                                }
+                            );
+                        });
+
+                        ui.horizontal(|ui| {
+                            ui.checkbox(&mut show_nodes, "Nodes");
+                            ui.checkbox(&mut show_beams, "Beams");
+                            ui.checkbox(&mut show_tris, "Tris");
                         });
 
                         if ui.button("Open JBeam").clicked() {
@@ -707,24 +746,28 @@ fn main() {
 
             let mut tri_objects = Vec::new();
 
-            for beam in &beams {
-                let beam_object = Gm{
-                    geometry: beam.get_3d_object(&context, &nodes),
-                    material: &beam_material,
-                };
-                beam_objects.push(beam_object);
+            if show_beams {
+                for beam in &beams {
+                    let beam_object = Gm{
+                        geometry: beam.get_3d_object(&context, &nodes),
+                        material: &beam_material,
+                    };
+                    beam_objects.push(beam_object);
+                }
             }
-
-            for node in &nodes {
-                let node_object = node.get_3d_object(&context, &node_material, &selected_node_material);
-                node_objects.push(node_object);
+            if show_nodes {
+                for node in &nodes {
+                    let node_object = node.get_3d_object(&context, &node_material, &selected_node_material);
+                    node_objects.push(node_object);
+                }
             }
+            if show_tris {
+                for tri in &tris {
+                    let tri_object = tri.get_3d_object(&context, &nodes);
 
-            for tri in &tris {
-                let tri_object = tri.get_3d_object(&context, &nodes);
-
-                tri_objects.push(tri_object);
-                
+                    tri_objects.push(tri_object);
+                    
+                }
             }
 
             // handle input
@@ -733,6 +776,17 @@ fn main() {
                 match event {
                 // w key pressed
                     Event::KeyPress { kind, modifiers, handled } => {
+
+                        if *kind == Key::D {
+                            if modifiers.ctrl {
+                                // deselect all
+                                for node in nodes.iter_mut() {
+                                    node.is_selected = false;
+                                    node_selected = false;
+                                    node_selected_index = 0;
+                                }
+                            }
+                        }
 
                         if *kind == Key::Tab {
                             show_big_gui = true;
@@ -1001,23 +1055,33 @@ fn main() {
                                     println!("{:?}", ray);
                                     new_beam_id2 = nodes[node_selected_index].id.clone();
 
-                                    nodes[node_selected_index].is_selected = false;
+                                    // if the node is already selected, we should deselect it, otherwise make it the primary selected node
+
+
+
+                                    // nodes[node_selected_index].is_selected = false;
 
                                     node_selected_index = jbeam::get_closest_node_index(&nodes, ray).unwrap();
 
-                                    new_node_pos = nodes[node_selected_index].position.clone();
-                                    new_node_pos.2 += 0.2;
+                                    if nodes[node_selected_index].is_selected {
+                                        nodes[node_selected_index].is_selected = false;
+                                    } else {
+                                        new_node_pos = nodes[node_selected_index].position.clone();
+                                        new_node_pos.2 += 0.2;
+    
+    
+                                        println!("Closest node: {}", nodes[node_selected_index].id);
+                                        
+                                        new_beam_id1 = nodes[node_selected_index].id.clone();
+    
+                                        node_selected = true;
+                                        nodes[node_selected_index].is_selected = true;
+    
+                                        // save the position of the node
+                                        node_pos_before_move = nodes[node_selected_index].position.clone();
+                                    }
 
 
-                                    println!("Closest node: {}", nodes[node_selected_index].id);
-                                    
-                                    new_beam_id1 = nodes[node_selected_index].id.clone();
-
-                                    node_selected = true;
-                                    nodes[node_selected_index].is_selected = true;
-
-                                    // save the position of the node
-                                    node_pos_before_move = nodes[node_selected_index].position.clone();
 
 
                                 }
@@ -1028,22 +1092,29 @@ fn main() {
                                         println!("{:?}", pick);
                                         new_beam_id2 = nodes[node_selected_index].id.clone();
 
-                                        nodes[node_selected_index].is_selected = false;
+                                        // nodes[node_selected_index].is_selected = false;
 
                                         node_selected_index = jbeam::get_closest_node_index(&nodes, pick).unwrap();
 
-                                        new_node_pos = nodes[node_selected_index].position.clone();
-                                        new_node_pos.2 += 0.2;
-
-                                        println!("Closest node: {}", nodes[node_selected_index].id);
+                                        if nodes[node_selected_index].is_selected {
+                                            nodes[node_selected_index].is_selected = false;
+                                        } else {
+                                            new_node_pos = nodes[node_selected_index].position.clone();
+                                            new_node_pos.2 += 0.2;
+    
+                                            println!("Closest node: {}", nodes[node_selected_index].id);
+                                            
+                                            new_beam_id1 = nodes[node_selected_index].id.clone();
+    
+                                            node_selected = true;
+                                            nodes[node_selected_index].is_selected = true;
+    
+                                            // save the position of the node
+                                            node_pos_before_move = nodes[node_selected_index].position.clone();
+                                        }
                                         
-                                        new_beam_id1 = nodes[node_selected_index].id.clone();
 
-                                        node_selected = true;
-                                        nodes[node_selected_index].is_selected = true;
 
-                                        // save the position of the node
-                                        node_pos_before_move = nodes[node_selected_index].position.clone();
                                     }
                                 }
 
@@ -1129,7 +1200,12 @@ fn main() {
 
 
                                         if snap_dif.abs() > (snap_increment*snap_speed) {
-                                            nodes[node_selected_index].position.0 += snap_increment * dir;
+                                            // nodes[node_selected_index].position.0 += snap_increment * dir;
+                                            for node in nodes.iter_mut() {
+                                                if node.is_selected {
+                                                    node.position.0 += snap_increment * dir;
+                                                }
+                                            }
                                             translate_dist = 0.0;
                                         }
 
@@ -1149,7 +1225,12 @@ fn main() {
 
 
                                         if snap_dif.abs() > (snap_increment*snap_speed) {
-                                            nodes[node_selected_index].position.1 += snap_increment * dir;
+                                            // nodes[node_selected_index].position.1 += snap_increment * dir;
+                                            for node in nodes.iter_mut() {
+                                                if node.is_selected {
+                                                    node.position.1 += snap_increment * dir;
+                                                }
+                                            }
                                             translate_dist = 0.0;
                                         }
                                     },
@@ -1168,7 +1249,14 @@ fn main() {
 
 
                                         if snap_dif.abs() > (snap_increment*snap_speed) {
-                                            nodes[node_selected_index].position.2 += snap_increment * dir;
+                                            // nodes[node_selected_index].position.2 += snap_increment * dir;
+
+                                            for node in nodes.iter_mut() {
+                                                if node.is_selected {
+                                                    node.position.2 += snap_increment * dir;
+                                                }
+                                            }
+
                                             translate_dist = 0.0;
                                         }
                                     },
@@ -1269,7 +1357,7 @@ fn main() {
                     frame_input.device_pixel_ratio,
                     |gui_context| {
 
-                        import_wizard::show_import_gui(gui_context, &mut import_vars, &mut nodes, &mut beams, &mut invalid_beams, &mut tris);
+                        import_wizard::show_import_gui(gui_context, &mut import_vars, &mut nodes, &mut beams, &mut invalid_beams, &mut tris, &mut parts);
                 
                 });
 

@@ -46,10 +46,10 @@ impl Default for ImportVars {
 
 
 
-pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars, nodes: &mut Vec<jbeam::JNode>, beams: &mut Vec<jbeam::JBeam>, invalid_beams: &mut Vec<jbeam::JBeam>, tris: &mut Vec<jbeam::JTri>) {
+pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars, nodes: &mut Vec<jbeam::JNode>, beams: &mut Vec<jbeam::JBeam>, invalid_beams: &mut Vec<jbeam::JBeam>, tris: &mut Vec<jbeam::JTri>, parts: &mut Vec<String>) {
     Window::new("JBeam Importer").anchor(Align2::CENTER_TOP, [0.0, 0.0]).show(&gui_context, |ui| {
 
-        if ui.button("browse...").clicked() {
+        if ui.button("🗁 browse...").clicked() {
 
             let file_dialog = FileDialog::new().add_filter("JBeam", &["jbeam"]);
             let result = file_dialog.pick_file();
@@ -77,9 +77,13 @@ pub fn show_import_gui(gui_context: &egui::Context, import_vars: &mut ImportVars
             let file_contents = fs::read_to_string(&import_vars.path).unwrap();
 
             if import_vars.import_nodes {
-                let mut new_nodes = jbeam::parse_nodes(file_contents.clone());
-
-            
+                let (mut new_nodes, mut new_parts) = jbeam::parse_nodes(file_contents.clone());
+                
+                for part in new_parts {
+                    if !parts.contains(&part) {
+                        parts.push(part.clone());
+                    }
+                }
 
                 // handle duplicate nodes
     

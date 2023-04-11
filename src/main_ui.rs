@@ -54,9 +54,24 @@ pub enum BigGuiMode {
     ModManager,
 }
 
-pub fn show_parts_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables) {
+pub fn show_parts_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, parts: &mut Vec<String>, nodes: &mut Vec<JNode>, multi_select_idxs: &mut Vec<usize>) {
     CentralPanel::default().show(gui_context, |ui| {
         ui.heading("Parts");
+        ui.separator();
+        for part in parts.iter() {
+            ui.horizontal(|ui| {
+                ui.label(part);
+                if ui.button("Select").on_hover_text("Select all nodes that make up this part. This will remove your current selection!").clicked() {
+                    for node in nodes.iter_mut() {
+                        if &node.parent_part == part {
+                            node.is_selected = true;
+                        } else {
+                            node.is_selected = false;
+                        }
+                    }
+                }
+            });
+        }
     });
 }
 
