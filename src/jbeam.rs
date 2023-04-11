@@ -596,38 +596,47 @@ impl JBeam {
     }
     pub fn write(&self) -> String {
 
-        let beam_strength = format!(r#""{}""#, self.beam_strength);
 
-        // let data = format!(r#"["{}", "{}" {{"beamType":"{}", "beamSpring":{}, "beamDamp":{}, "beamStrength":{}, "beamDeform":{}, "beamPrecompression":{}, "beamPrecompressionRange":{}, "beamPrecompressionTime":{}, "breakGroup":"{}", "breakGroupType":{}, "name":"{}", "dampCutoffHz":{}, "deformLimit":{}, "deformLimitExpansion":{}, "optional":{}, "deformGroup":"{}", "deformationTriggerRatio":{}, "soundFile":"{}", "colorFactor":{}, "attackFactor":{}, "volumeFactor":{}, "decayFactor":{}, "pitchFactor":{}, "maxStress":{} }}],"#,
-        //     self.id1,
-        //     self.id2,
-        //     self.beam_type,
-        //     self.beam_spring,
-        //     self.beam_damp,
-        //     beam_strength,
-        //     self.beam_deform,
-        //     self.beam_compression,
-        //     self.beam_compression_range,
-        //     self.beam_compression_time,
-        //     self.break_group,
-        //     self.break_group_type,
-        //     self.name,
-        //     self.damp_cutoff_hz,
-        //     self.deform_limit,
-        //     self.deform_limt_expansion,
-        //     self.optional,
-        //     self.deform_group,
-        //     self.deformation_trigger_ratio,
-        //     self.sound_file,
-        //     self.color_factor,
-        //     self.attack_factor,
-        //     self.volume_factor,
-        //     self.decay_factor,
-        //     self.pitch_factor,
-        //     self.max_stress,
-        // );
-        let data = format!(r#"["{}", "{}"]"#, self.id1, self.id2);
-        // println!("{}", data);
+        let strength_is_number = self.beam_strength.parse::<f32>().is_ok();
+
+        let mut beam_strength = String::new();
+
+        if strength_is_number {
+            beam_strength = format!("{}", self.beam_strength.parse::<f32>().unwrap());
+        } else {
+            beam_strength = format!(r#""{}""#, self.beam_strength);
+        }
+
+
+        let data = format!(r#"[ "{}", "{}" {{ "beamType": "{}", "beamSpring":{}, "beamDamp":{}, "beamStrength":{}, "beamDeform":{}, "beamPrecompression":{}, "beamPrecompressionRange":{}, "beamPrecompressionTime":{}, "breakGroup":"{}", "breakGroupType":{}, "name":"{}", "dampCutoffHz":{}, "deformLimit":{}, "deformLimitExpansion":{}, "optional":{}, "deformGroup":"{}", "deformationTriggerRatio":{}, "soundFile":"{}", "colorFactor":{} }} ]"#,
+            self.id1,
+            self.id2,
+            self.beam_type,
+            self.beam_spring,
+            self.beam_damp,
+            beam_strength,
+            self.beam_deform,
+            self.beam_compression,
+            self.beam_compression_range,
+            self.beam_compression_time,
+            self.break_group,
+            self.break_group_type.parse::<i32>().unwrap_or(0),
+            self.name,
+            self.damp_cutoff_hz,
+            self.deform_limit,
+            self.deform_limt_expansion,
+            self.optional,
+            self.deform_group,
+            self.deformation_trigger_ratio,
+            self.sound_file,
+            self.color_factor,
+
+        );
+
+
+
+
+        println!("{}", data);
         data
 
     }
