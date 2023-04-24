@@ -4,7 +4,7 @@ use regex::Regex;
 use rfd::FileDialog;
 
 
-
+use crate::export_beams::write_beam;
 
 use pest::{Parser, iterators::Pairs};
 
@@ -533,30 +533,30 @@ pub struct JBeam {
     pub node1_idx: usize,
     pub node2_idx: usize,
     // optional arguments
-    beam_type: String,
-    beam_spring: f32,
-    beam_damp: f32,
-    beam_strength: String,
-    beam_deform: f32,
-    beam_compression: f32,
-    beam_compression_range: f32,
-    beam_compression_time: f32,
-    break_group: String,
-    break_group_type: String,
-    name: String,
-    damp_cutoff_hz: f32,
-    deform_limit: f32,
-    deform_limt_expansion: f32,
-    optional: bool,
-    deform_group: String,
-    deformation_trigger_ratio: f32,
-    sound_file: String,
-    color_factor: f32,
-    attack_factor: f32,
-    volume_factor: f32,
-    decay_factor: f32,
-    pitch_factor: f32,
-    max_stress: f32,
+    pub beam_type: String,
+    pub beam_spring: f32,
+    pub beam_damp: f32,
+    pub beam_strength: String,
+    pub beam_deform: f32,
+    pub beam_compression: f32,
+    pub beam_compression_range: f32,
+    pub beam_compression_time: f32,
+    pub break_group: String,
+    pub break_group_type: String,
+    pub name: String,
+    pub damp_cutoff_hz: f32,
+    pub deform_limit: f32,
+    pub deform_limt_expansion: f32,
+    pub optional: bool,
+    pub deform_group: String,
+    pub deformation_trigger_ratio: f32,
+    pub sound_file: String,
+    pub color_factor: f32,
+    pub attack_factor: f32,
+    pub volume_factor: f32,
+    pub decay_factor: f32,
+    pub pitch_factor: f32,
+    pub max_stress: f32,
 
 }
 
@@ -572,8 +572,8 @@ impl JBeam {
             beam_spring: 4300000.0,
             beam_damp: 580.0,
             beam_strength: "FLT_MAX".to_owned(),
-            beam_deform: 0.0,
-            beam_compression: 0.0,
+            beam_deform: 220000.0,
+            beam_compression: 1.0,
             beam_compression_range: 0.0,
             beam_compression_time: 0.0,
             break_group: String::new(),
@@ -596,48 +596,9 @@ impl JBeam {
     }
     pub fn write(&self) -> String {
 
+        // println!("{:#?}", self);
 
-        let strength_is_number = self.beam_strength.parse::<f32>().is_ok();
-
-        let mut beam_strength = String::new();
-
-        if strength_is_number {
-            beam_strength = format!("{}", self.beam_strength.parse::<f32>().unwrap());
-        } else {
-            beam_strength = format!(r#""{}""#, self.beam_strength);
-        }
-
-
-        let data = format!(r#"[ "{}", "{}" {{ "beamType": "{}", "beamSpring":{}, "beamDamp":{}, "beamStrength":{}, "beamDeform":{}, "beamPrecompression":{}, "beamPrecompressionRange":{}, "beamPrecompressionTime":{}, "breakGroup":"{}", "breakGroupType":{}, "name":"{}", "dampCutoffHz":{}, "deformLimit":{}, "deformLimitExpansion":{}, "optional":{}, "deformGroup":"{}", "deformationTriggerRatio":{}, "soundFile":"{}", "colorFactor":{} }} ]"#,
-            self.id1,
-            self.id2,
-            self.beam_type,
-            self.beam_spring,
-            self.beam_damp,
-            beam_strength,
-            self.beam_deform,
-            self.beam_compression,
-            self.beam_compression_range,
-            self.beam_compression_time,
-            self.break_group,
-            self.break_group_type.parse::<i32>().unwrap_or(0),
-            self.name,
-            self.damp_cutoff_hz,
-            self.deform_limit,
-            self.deform_limt_expansion,
-            self.optional,
-            self.deform_group,
-            self.deformation_trigger_ratio,
-            self.sound_file,
-            self.color_factor,
-
-        );
-
-
-
-
-        println!("{}", data);
-        data
+        write_beam(self)
 
     }
 
@@ -716,6 +677,7 @@ fn parse_beam_modifiers(rule: Pairs<Rule>, beam: JBeam) -> JBeam {
                     for rule in rule.into_inner() {
                         if rule.as_rule() == Rule::string {
                             beam.beam_type = rule.as_str().to_string().replace(r#"""#, "");
+                            println!("{}", beam.beam_type);
                         }
                     }
                 },
@@ -957,7 +919,10 @@ pub fn parse_beams(unparsed_file: String, nodes: &Vec<JNode>) -> (Vec<JBeam>, Ve
 
 
 
-                            beam = JBeam::new();
+                            // beam = JBeam::new();
+
+                            beam.id1 = String::new();
+                            beam.id2 = String::new();
 
                         },
                         Rule::beam_modifiers => {

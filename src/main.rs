@@ -5,6 +5,7 @@ mod jbeam;
 mod main_ui;
 mod import_wizard;
 
+mod export_beams;
 
 use three_d::*;
 #[macro_use]
