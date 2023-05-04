@@ -800,7 +800,7 @@ fn main() {
                         if *kind == Key::S {
                             camera.translate(&(&camera.view_direction() * -camera_speed))
                         }
-                        if *kind == Key::D {
+                        if *kind == Key::D && !modifiers.ctrl {
                             camera.translate(&(&camera.right_direction() * camera_speed))
                         }
                         if *kind == Key::A {
