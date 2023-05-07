@@ -52,6 +52,7 @@ pub enum BigGuiMode {
     Parts,
     Nodes,
     ModManager,
+    Beams,
 }
 
 pub fn show_parts_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, parts: &mut Vec<String>, nodes: &mut Vec<JNode>, multi_select_idxs: &mut Vec<usize>) {
@@ -367,19 +368,57 @@ pub fn show_mod_manager(gui_context: &egui::Context, ui_vars: &mut UiVariables) 
     });
 }
 
-pub fn show_beams_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, node1_id: String, node2_id: String, beams: &mut JBeam) {
+pub fn show_beams_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, beam_selected: bool, beam_idx: usize, beams: &mut Vec<JBeam>) {
     CentralPanel::default().show(gui_context, |ui| {
 
-        // check if at node1_id and node2_id exist
-        if !node1_id.is_empty() && !node2_id.is_empty() {
+        // does a beam exist?
+        if beam_selected {
 
-            // check if there is a beam between the nodes and get the index of the beam
+            ui.horizontal(|ui| {
+                ui.heading("Id1:");
+                ui.heading(RichText::new(format!("{}", beams[beam_idx].id1)).color(Color32::RED));
+                ui.heading("Id2:");
+                ui.heading(RichText::new(format!("{}", beams[beam_idx].id2)).color(Color32::RED));
+            });
 
-            let mut beam_exists = false;
-            
+            ui.separator();
 
-            
+            ui.collapsing("Basic", |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Beam Spring:").on_hover_text("Rigidity of the beam (N/m). Force required to change the length of the beam by a set amount. Excessively high stiffness compared to node weight can cause the beam to vibrate and cause instability issues.");
+                    ui.add(DragValue::new(&mut beams[beam_idx].beam_spring));
+                });
 
+                ui.separator();
+
+                ui.horizontal(|ui| {
+                    ui.label("Beam Damp:").on_hover_text("Damping of the beam (N/m/s). Damping causes oscillations to reduce over time. Excessively high damping compared to the node weight might cause pulsing stresses and instability.");
+                    ui.add(DragValue::new(&mut beams[beam_idx].beam_damp));
+                });
+
+                ui.separator();
+
+                ui.horizontal(|ui| {
+                    ui.label("Beam Strength:").on_hover_text("Strength of the beam. (N). How much force the beam can resist before breaking. A value of “FLT_MAX” will result in an unbreakable beam.");
+                    ui.text_edit_singleline(&mut beams[beam_idx].beam_strength);
+                });
+
+                ui.separator();
+
+                ui.horizontal(|ui| {
+                    ui.label("Beam Deform:").on_hover_text("How much force (N) is required to deform the beam permanently. A value of “FLT_MAX” will result in a beam that can’t be broken.");
+                    ui.add(DragValue::new(&mut beams[beam_idx].beam_deform));            
+                });
+
+                ui.separator();
+
+
+
+            });
+
+
+        } else {
+            ui.heading(RichText::new("No beam selected, go back to the viewport and select one.").color(Color32::RED));
         }
 
     });

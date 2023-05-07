@@ -175,7 +175,8 @@ node_modifier = {
     node_spec_heat |
     node_smoke_point |
     node_self_ignition_coef |
-    node_engine_group
+    node_engine_group |
+    node_coupler_start_radius
 }
 
 node_weight = { quote ~ "nodeWeight" ~ quote ~ ":" ~ number }
@@ -186,7 +187,7 @@ node_friction_coef = { quote ~ "frictionCoef" ~ quote ~ ":" ~ number }
 node_material = { quote ~ "nodeMaterial" ~ quote ~ ":" ~ string }
 node_fixed = { quote ~ "fixed" ~ quote ~ ":" ~ boolean }
 node_coupler_strength = { quote ~ "couplerStrength" ~ quote ~ ":" ~ number }
-node_coupler_tag = { quote ~ "couplerTag" ~ quote ~ ":" ~ number }
+node_coupler_tag = { quote ~ "couplerTag" ~ quote ~ ":" ~ string }
 node_coupler_radius = { quote ~ "couplerRadius" ~ quote ~ ":" ~ number }
 node_break_group = { quote ~ "breakGroup" ~ quote ~ ":" ~ string }
 node_coupler_lock = { quote ~ "couplerLock" ~ quote ~ ":" ~ boolean }
@@ -211,7 +212,7 @@ node_spec_heat = { quote ~ "specHeat" ~ quote ~ ":" ~ (number | boolean) }
 node_smoke_point = { quote ~ "smokePoint" ~ quote ~ ":" ~ (number | boolean) }
 node_self_ignition_coef = { quote ~ "selfIgnitionCoef" ~ quote ~ ":" ~ (number | boolean) }
 node_engine_group = { quote ~ "engineGroup" ~ quote ~ ":" ~ (("[" ~ string* ~ "]") | string) }
-
+node_coupler_start_radius = { quote ~ "couplerStartRadius" ~ quote ~ ":" ~ number }
 // beams object
 
 beams = { quote ~ "beams" ~ quote ~ ":" ~ "[" ~ (beam | beam_modifiers)* ~ "]" }

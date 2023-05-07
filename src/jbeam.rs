@@ -107,8 +107,8 @@ fn parse_node_modifiers(rule: Pairs<Rule>, node: JNode) -> JNode {
                 },
                 Rule::node_coupler_tag => {
                     for rule in rule.into_inner() {
-                        if rule.as_rule() == Rule::number {
-                            node.coupler_tag = rule.as_str().parse().unwrap();
+                        if rule.as_rule() == Rule::string {
+                            node.coupler_tag = 0.0;
                         }
                     }
                 },
@@ -291,10 +291,11 @@ pub fn parse_nodes(unparsed_file: String) -> (Vec<JNode>, Vec<String>) {
                 for rule in rule.into_inner() {
                     match rule.as_rule() {
                         Rule::node => {
-
+                            
 
                             let mut coord_counter = 0;
                             for rule in rule.into_inner() {
+                                println!("Node Found!");
                                 match rule.as_rule() {
                                     Rule::string => {
                                         node.id = rule.as_str().to_string().replace(r#"""#, "");
@@ -302,6 +303,7 @@ pub fn parse_nodes(unparsed_file: String) -> (Vec<JNode>, Vec<String>) {
                                     },
                                     Rule::number => {
                                         let value: f32 = rule.as_str().parse().unwrap();
+                                        println!("{}", value);
                                         match coord_counter {
                                             0 => {
                                                 node.position.0 = -1.0 * value;
@@ -323,7 +325,7 @@ pub fn parse_nodes(unparsed_file: String) -> (Vec<JNode>, Vec<String>) {
                                 }
                             }
 
-                            // println!("{}, {:?}", id, coords);
+                            println!("{:?}", node);
                             node.parent_part = part_name.clone();
                             nodes.push(node.clone());
                             // node = JNode::new();
@@ -450,7 +452,7 @@ impl JNode {
 
         let data = format!(r#"["{}", {}, {}, {}, {{"nodeWeight":{}, "collision":{}, "selfCollision":{}, "frictionCoef":{}, {}, "fixed":{}, "breakGroup":"{}", "importElectrics":{}, "importInputs":{}, "surfaceCoef":{}, "volumeCoef":{}, "noLoadCoef":{}, "fullLoadCoef":{}, "stribeckExponent":{}, "stribeckVelMult":{}, "softnessCoef":{}, "treadCoef":{}, "loadSensitivitySlope":{} }}],"#,
             self.id,
-            self.position.0,
+            -self.position.0,
             self.position.2,
             self.position.1,
             self.node_weight,
@@ -1184,4 +1186,22 @@ pub fn parse_tris(unparsed_file: String, nodes: &Vec<JNode>) -> Vec<JTri> {
 
     tris
     
+}
+
+#[derive(Debug)]
+pub enum SelectError {
+    NoBeam
+}
+
+// try to select a beam based on two input nodes
+pub fn try_select_beam(id1: &String, id2: &String, beams: &Vec<JBeam>) -> Result<usize, SelectError> {
+
+    for (i, beam) in beams.iter().enumerate() {
+        if (&beam.id1 == id1 && &beam.id2 == id2) || (&beam.id2 == id1 && &beam.id1 == id2) {
+            return Ok(i);
+        }
+    }
+
+    Err(SelectError::NoBeam)
+
 }

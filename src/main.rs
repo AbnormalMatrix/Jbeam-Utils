@@ -148,6 +148,9 @@ fn main() {
 
 
 
+    let mut selected_beam_idx = 0;
+    let mut beam_selected = false;
+
 
     let window = Window::new(WindowSettings {
         title: "JBeam Editor".to_string(),
@@ -338,6 +341,9 @@ fn main() {
                         if ui.button("Nodes").clicked() {
                             big_gui_mode = main_ui::BigGuiMode::Nodes;
                         };
+                        if ui.button("Beams").clicked() {
+                            big_gui_mode = main_ui::BigGuiMode::Beams;
+                        }
                         if ui.button("Mod Manager").clicked() {
                             big_gui_mode = main_ui::BigGuiMode::ModManager;
                         }
@@ -368,9 +374,12 @@ fn main() {
                     },
                     main_ui::BigGuiMode::Nodes => {
                         main_ui::show_nodes_gui(gui_context, &mut big_gui_vars, selected_node_id, node_selected_index, node_selected, &mut nodes);
-                    }
+                    },
                     main_ui::BigGuiMode::ModManager => {
                         main_ui::show_mod_manager(gui_context, &mut big_gui_vars);
+                    },
+                    main_ui::BigGuiMode::Beams => {
+                        main_ui::show_beams_gui(gui_context, &mut big_gui_vars, beam_selected, selected_beam_idx, &mut beams);
                     }
                     _=> {}
                 }
@@ -1112,6 +1121,12 @@ fn main() {
     
                                             // save the position of the node
                                             node_pos_before_move = nodes[node_selected_index].position.clone();
+
+                                            if let Ok(selected_beam) = jbeam::try_select_beam(&new_beam_id1, &new_beam_id2, &beams) {
+                                                beam_selected = true;
+                                                selected_beam_idx = selected_beam;
+                                                println!("Selected Beam with index: {}", selected_beam_idx);
+                                            }
                                         }
                                         
 
