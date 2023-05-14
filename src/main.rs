@@ -19,11 +19,7 @@ enum EditorMode {
     Move,
 }
 
-#[derive(PartialEq)]
-enum CreateMode {
-    Beams,
-    Tris,
-}
+
 
 #[derive(PartialEq)]
 pub enum MoveAxis {
@@ -61,7 +57,11 @@ enum SelectMode {
 fn main() {
 
 
+    // SELECTION STUFF
 
+    let mut user_selection: Vec<usize> = Vec::new();
+
+    // OTHER STUFF
 
     let mut nodes: Vec<jbeam::JNode> = Vec::new();
 
@@ -373,7 +373,7 @@ fn main() {
                         main_ui::show_parts_gui(gui_context, &mut big_gui_vars, &mut parts, &mut nodes, &mut multi_select_idxs);
                     },
                     main_ui::BigGuiMode::Nodes => {
-                        main_ui::show_nodes_gui(gui_context, &mut big_gui_vars, selected_node_id, node_selected_index, node_selected, &mut nodes);
+                        main_ui::show_nodes_gui(gui_context, &mut big_gui_vars, &user_selection, !user_selection.is_empty(), &mut nodes);
                     },
                     main_ui::BigGuiMode::ModManager => {
                         main_ui::show_mod_manager(gui_context, &mut big_gui_vars);
@@ -795,6 +795,7 @@ fn main() {
                                     node_selected = false;
                                     node_selected_index = 0;
                                 }
+                                user_selection.clear();
                             }
                         }
 
@@ -983,7 +984,7 @@ fn main() {
                     },
 
                     Event::MousePress {
-                        button, position, ..
+                        button, position, modifiers, ..
                     } => {
                         if *button == MouseButton::Left {
 
@@ -1100,37 +1101,58 @@ fn main() {
                                 _ => {
                                     if let Some(pick) = pick(&context, &camera, pixel, &node_objects) {
                                         println!("{:?}", pick);
-                                        new_beam_id2 = nodes[node_selected_index].id.clone();
+                                        // new_beam_id2 = nodes[node_selected_index].id.clone();
 
                                         // nodes[node_selected_index].is_selected = false;
 
-                                        node_selected_index = jbeam::get_closest_node_index(&nodes, pick).unwrap();
+                                        // node_selected_index = jbeam::get_closest_node_index(&nodes, pick).unwrap();
 
-                                        if nodes[node_selected_index].is_selected {
-                                            nodes[node_selected_index].is_selected = false;
-                                        } else {
-                                            new_node_pos = nodes[node_selected_index].position.clone();
-                                            new_node_pos.2 += 0.2;
+                                        // if nodes[node_selected_index].is_selected {
+                                        //     nodes[node_selected_index].is_selected = false;
+                                        // } else {
+                                        //     new_node_pos = nodes[node_selected_index].position.clone();
+                                        //     new_node_pos.2 += 0.2;
     
-                                            println!("Closest node: {}", nodes[node_selected_index].id);
+                                        //     println!("Closest node: {}", nodes[node_selected_index].id);
                                             
-                                            new_beam_id1 = nodes[node_selected_index].id.clone();
+                                        //     new_beam_id1 = nodes[node_selected_index].id.clone();
     
-                                            node_selected = true;
-                                            nodes[node_selected_index].is_selected = true;
+                                        //     node_selected = true;
+                                        //     nodes[node_selected_index].is_selected = true;
     
-                                            // save the position of the node
-                                            node_pos_before_move = nodes[node_selected_index].position.clone();
+                                        //     // save the position of the node
+                                        //     node_pos_before_move = nodes[node_selected_index].position.clone();
 
-                                            if let Ok(selected_beam) = jbeam::try_select_beam(&new_beam_id1, &new_beam_id2, &beams) {
-                                                beam_selected = true;
-                                                selected_beam_idx = selected_beam;
-                                                println!("Selected Beam with index: {}", selected_beam_idx);
-                                            }
+                                        //     if let Ok(selected_beam) = jbeam::try_select_beam(&new_beam_id1, &new_beam_id2, &beams) {
+                                        //         beam_selected = true;
+                                        //         selected_beam_idx = selected_beam;
+                                        //         println!("Selected Beam with index: {}", selected_beam_idx);
+                                        //     }
+                                        // }
+                                        
+                                        if !user_selection.is_empty() {
+                                            new_beam_id2 = nodes[*user_selection.last().unwrap()].id.clone();
                                         }
                                         
 
+                                        let closest_node = jbeam::get_closest_node_index(&nodes, pick).unwrap();
+                                        
 
+                                        new_beam_id1 = nodes[closest_node].id.clone();
+                                        node_pos_before_move = nodes[closest_node].position.clone();
+                                        
+                                        nodes[closest_node].is_selected = true;
+
+                                        if modifiers.shift {
+                                            user_selection.push(closest_node);
+                                        } else {
+                                            for node in &user_selection {
+                                                nodes[*node].is_selected = false;
+                                            }
+                                            user_selection.clear();
+                                            user_selection.push(closest_node);
+                                        }
+                                        nodes[closest_node].is_selected = true;
                                     }
                                 }
 
@@ -1146,7 +1168,7 @@ fn main() {
                             if editor_mode == EditorMode::Move {
                                 // reset the position of the node
                                 if node_selected {
-                                    nodes[node_selected_index].position = node_pos_before_move.clone();
+                                    nodes[*user_selection.last().unwrap()].position = node_pos_before_move.clone();
                                 }
                                 editor_mode = EditorMode::Normal;
                                 move_axis = MoveAxis::Undefined;
@@ -1177,7 +1199,7 @@ fn main() {
                         }
 
                         // check if a node is selected, the editor is in move mode and an axis is chosen
-                        if node_selected && editor_mode == EditorMode::Move && move_axis != MoveAxis::Undefined {
+                        if !user_selection.is_empty() && editor_mode == EditorMode::Move && move_axis != MoveAxis::Undefined {
 
 
 
@@ -1201,15 +1223,16 @@ fn main() {
                                 match move_axis {
                                     MoveAxis::X => {
 
+                                        
 
 
                                         // find the next point to snap to
 
-                                        let next_snap =  nodes[node_selected_index].position.0 + snap_increment * dir;
+                                        let next_snap =  nodes[*user_selection.last().unwrap()].position.0 + snap_increment * dir;
 
                                         // find the position that it would be at if you were not snapping
 
-                                        let no_snap = nodes[node_selected_index].position.0 + translate_dist;
+                                        let no_snap = nodes[*user_selection.last().unwrap()].position.0 + translate_dist;
 
                                         let snap_dif = no_snap - next_snap;
                                         
@@ -1230,11 +1253,11 @@ fn main() {
                                         // move the node on the Y axis
                                         // find the next point to snap to
 
-                                        let next_snap =  nodes[node_selected_index].position.1 + snap_increment * dir;
+                                        let next_snap =  nodes[*user_selection.last().unwrap()].position.1 + snap_increment * dir;
 
                                         // find the position that it would be at if you were not snapping
 
-                                        let no_snap = nodes[node_selected_index].position.1 + translate_dist;
+                                        let no_snap = nodes[*user_selection.last().unwrap()].position.1 + translate_dist;
 
                                         let snap_dif = no_snap - next_snap;
                                         
@@ -1254,11 +1277,11 @@ fn main() {
                                         // move the node on the Z axis
                                         // find the next point to snap to
 
-                                        let next_snap =  nodes[node_selected_index].position.2 + snap_increment * dir;
+                                        let next_snap =  nodes[*user_selection.last().unwrap()].position.2 + snap_increment * dir;
 
                                         // find the position that it would be at if you were not snapping
 
-                                        let no_snap = nodes[node_selected_index].position.2 + translate_dist;
+                                        let no_snap = nodes[*user_selection.last().unwrap()].position.2 + translate_dist;
 
                                         let snap_dif = no_snap - next_snap;
                                         
@@ -1313,12 +1336,13 @@ fn main() {
 
 
             // if a node is selected, move the axes to the node, otherwise move the axes to 0,0,0
-            if node_selected {
-                let axes_pos = Mat4::from_translation(Vector3 { x: nodes[node_selected_index].position.0, y: nodes[node_selected_index].position.1, z: nodes[node_selected_index].position.2 });
+            if !user_selection.is_empty() {
+                let last_selected = user_selection.last().unwrap().clone();
+                let axes_pos = Mat4::from_translation(Vector3 { x: nodes[last_selected].position.0, y: nodes[last_selected].position.1, z: nodes[last_selected].position.2 });
                 axes.set_transformation(axes_pos);
 
             } else {
-                let axes_pos = Mat4::from_translation(Vector3 { x: 0.0, y: 0.0, z: 0.0 });
+                let axes_pos = Mat4::from_translation(Vector3 { x: 10000.0, y: 0.0, z: 0.0 });
                 axes.set_transformation(axes_pos);
             }
             

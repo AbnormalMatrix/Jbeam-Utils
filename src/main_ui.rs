@@ -77,47 +77,67 @@ pub fn show_parts_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, pa
 }
 
 
-pub fn show_nodes_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, selected_node_id: String, selected_node_index: usize, node_selected: bool, nodes: &mut Vec<JNode>) {
+pub fn show_nodes_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, selected_nodes: &Vec<usize>, node_selected: bool, nodes: &mut Vec<JNode>) {
     if nodes.len() > 0 {
         CentralPanel::default().show(gui_context, |ui| {
             ui.horizontal(|ui| {
-                ui.heading("Selected Node: ").on_hover_text("Changing the properties below will change them for this node.");
-                ui.heading(RichText::new(selected_node_id).color(Color32::RED));
+                ui.heading(RichText::new(format!("{} nodes selected", selected_nodes.len())).color(Color32::RED));
             });
             ui.separator();
     
             // show the required properties at the top
     
-            ui.horizontal(|ui| {
-                ui.label("ID:").on_hover_text("The id of the node. Changing this can severly break things. Only modify if you have a good reason to!");
-                ui.text_edit_singleline(&mut nodes[selected_node_index].id);
-                ui.separator();
+            // ui.horizontal(|ui| {
+            //     ui.label("ID:").on_hover_text("The id of the node. Changing this can severly break things. Only modify if you have a good reason to!");
+            //     ui.text_edit_singleline(&mut nodes[selected_node_index].id);
+            //     ui.separator();
     
-                // xyz
+            //     // xyz
     
-                ui.label(format!("X: {}, Y: {}, Z:{}", nodes[selected_node_index].position.0, nodes[selected_node_index].position.1, nodes[selected_node_index].position.2)).on_hover_text("The position can be changed in the 3D editor. (TAB)");
+            //     ui.label(format!("X: {}, Y: {}, Z:{}", nodes[selected_node_index].position.0, nodes[selected_node_index].position.1, nodes[selected_node_index].position.2)).on_hover_text("The position can be changed in the 3D editor. (TAB)");
     
-            });
+            // });
     
             CollapsingHeader::new("Basic").show(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.label("Weight: ").on_hover_text("The weight of the node in kg. As of game version 0.28.0.0 the default weight of a node is 25 kg.");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].node_weight));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].node_weight)).changed(){
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].node_weight.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.node_weight = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Collision: ").on_hover_text("If the node can collide with the world.");
-                    ui.checkbox(&mut nodes[selected_node_index].collision, "");
+                    if ui.checkbox(&mut nodes[*selected_nodes.last().unwrap_or(&0)].collision, "").changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].collision.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.collision = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Self Collision: ").on_hover_text("If the node can collide with the vehicle.");
-                    ui.checkbox(&mut nodes[selected_node_index].self_collision, "");
+                    if ui.checkbox(&mut nodes[*selected_nodes.last().unwrap_or(&0)].self_collision, "").changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].self_collision.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.self_collision = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 CollapsingHeader::new("Groups").show(ui, |ui| {
     
-                    for group in &nodes[selected_node_index].group {
+                    for group in &nodes[*selected_nodes.last().unwrap_or(&0)].group {
                         ui.horizontal(|ui| {
                             ui.label(group);
                             if ui.button("-").clicked() {
@@ -126,14 +146,14 @@ pub fn show_nodes_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, se
                         });
                     }
                     if !ui_vars.group_to_remove.is_empty() {
-                        nodes[selected_node_index].group.retain(|g| *g != ui_vars.group_to_remove);
+                        nodes[*selected_nodes.last().unwrap_or(&0)].group.retain(|g| *g != ui_vars.group_to_remove);
                         ui_vars.group_to_remove = String::new();
                     }
                     ui.horizontal(|ui| {
                         ui.label("New: ").on_hover_text("Create a new group.");
                         ui.text_edit_singleline(&mut ui_vars.new_group_name);
                         if ui.button("+").clicked() {
-                            nodes[selected_node_index].group.push(ui_vars.new_group_name.clone());
+                            nodes[*selected_nodes.last().unwrap_or(&0)].group.push(ui_vars.new_group_name.clone());
                             ui_vars.new_group_name = String::new();
                         }
                     });
@@ -141,17 +161,38 @@ pub fn show_nodes_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, se
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Friction Coefficient: ").on_hover_text("Friction of the node. Default = 1.");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].friction_coefficient));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].friction_coefficient)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].friction_coefficient.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.friction_coefficient = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Surface Coefficient: ").on_hover_text("Makes a node have more or less drag area in ground models with depth.");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].surface_coef));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].surface_coef)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].surface_coef.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.surface_coef = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Volume Coefficient: ").on_hover_text("Makes a node more ore less buoyant in ground models with depth.");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].volume_coef));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].volume_coef)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].volume_coef.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.volume_coef = new_value;
+                            }
+                        }
+                    }
                 });
     
             });
@@ -159,17 +200,38 @@ pub fn show_nodes_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, se
             CollapsingHeader::new("Advanced").show(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.label("Fixed: ").on_hover_text("If the node is fixed in 3D space (Can't move at all).");
-                    ui.checkbox(&mut nodes[selected_node_index].fixed, "");
+                    if ui.checkbox(&mut nodes[*selected_nodes.last().unwrap_or(&0)].fixed, "").changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].fixed.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.fixed = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Break Group: ").on_hover_text("Will break the coupler if the selected [breakGroup] breaks, or break the breakGroup if the coupler breaks.");
-                    ui.text_edit_singleline(&mut nodes[selected_node_index].break_group);
+                    if ui.text_edit_singleline(&mut nodes[*selected_nodes.last().unwrap_or(&0)].break_group).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].break_group.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.break_group = new_value.clone();
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Paired Node: ").on_hover_text("This can be used to i.e. link double tires together.");
-                    ui.text_edit_singleline(&mut nodes[selected_node_index].paired_node);
+                    if ui.text_edit_singleline(&mut nodes[*selected_nodes.last().unwrap_or(&0)].paired_node).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].paired_node.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.paired_node = new_value.clone();
+                            }
+                        }
+                    }
                 });
                 ui.separator();
     
@@ -178,42 +240,98 @@ pub fn show_nodes_gui(gui_context: &egui::Context, ui_vars: &mut UiVariables, se
             CollapsingHeader::new("Undocumented - They do something... probably").show(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.label("No Load Coefficient: ");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].no_load_coef));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].no_load_coef)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].no_load_coef.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.no_load_coef = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Full Load Coefficient: ");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].full_load_coef));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].full_load_coef)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].full_load_coef.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.full_load_coef = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Stribeck Vel Mult: ");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].stribeck_vel_mult));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].stribeck_vel_mult)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].stribeck_vel_mult.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.stribeck_vel_mult = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Stribeck Exponent: ");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].stribeck_exponent));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].stribeck_exponent)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].stribeck_exponent.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.stribeck_exponent = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Softness Coefficient: ");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].softness_coef));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].softness_coef)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].softness_coef.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.softness_coef = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Tread Coefficient: ");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].tread_coef));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].tread_coef)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].tread_coef.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.tread_coef = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Load Sensitivity Slope: ");
-                    ui.add(DragValue::new(&mut nodes[selected_node_index].load_sensitivity_slope));
+                    if ui.add(DragValue::new(&mut nodes[*selected_nodes.last().unwrap_or(&0)].load_sensitivity_slope)).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].load_sensitivity_slope.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.load_sensitivity_slope = new_value;
+                            }
+                        }
+                    }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
                     ui.label("Tag: ");
-                    ui.text_edit_singleline(&mut nodes[selected_node_index].tag);
+                    if ui.text_edit_singleline(&mut nodes[*selected_nodes.last().unwrap_or(&0)].tag).changed() {
+                        let new_value = nodes[*selected_nodes.last().unwrap_or(&0)].tag.clone();
+                        for node in nodes.iter_mut() {
+                            if node.is_selected {
+                                node.tag = new_value.clone();
+                            }
+                        }
+                    }
                 });
     
                 
