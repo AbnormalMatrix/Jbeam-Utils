@@ -980,6 +980,27 @@ fn main() {
                                 println!("There was an error creating a new beam!");
                             }
                         }
+                        if *kind == Key::T {
+                            // t adds a triangle
+                            // check if there are 3 nodes selected
+                            if user_selection.len() == 3 {
+                                // create a triangle
+
+                                let new_tri = jbeam::new_tri(&nodes, &tris, &user_selection[0], &user_selection[1], &user_selection[2]);
+
+                                if new_tri.is_ok() {
+                                    tris.push(new_tri.unwrap());
+                                } else {
+                                    println!("There was an error creating a new triangle!");
+                                }
+                            } else {
+                                // popup message warning the user that they need to select exactly 3 nodes to make a triangle
+                                rfd::MessageDialog::new().set_title("Triangle Error!")
+                                    .set_description("To create a triangle, you must have exactly 3 nodes selected.")
+                                    .set_buttons(rfd::MessageButtons::Ok)
+                                    .show();
+                            }
+                        }
 
                     },
 

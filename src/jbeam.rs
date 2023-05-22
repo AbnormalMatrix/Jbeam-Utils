@@ -1039,7 +1039,41 @@ pub fn new_beam(nodes: &Vec<JNode>, beams: &Vec<JBeam>, id1: String, id2: String
     return Some(beam);
 }
 
+pub fn new_tri(nodes: &Vec<JNode>, tris: &Vec<JTri>, n1: &usize, n2: &usize, n3: &usize) -> Result<JTri, String> {
+    
+    // check if the triangle already exists
 
+    let mut tri_valid = true;
+
+    // check if the triangle is valid by checking if the nodes are the same regardless of order
+
+    let id1 = nodes[*n1].id.clone();
+    let id2 = nodes[*n2].id.clone();
+    let id3 = nodes[*n3].id.clone();
+
+
+    
+
+    for tri in tris {
+        let tri_ids = vec![nodes[tri.id1].id.clone(), nodes[tri.id2].id.clone(), nodes[tri.id3].id.clone()];
+
+        if tri_ids.contains(&id1) && tri_ids.contains(&id2) && tri_ids.contains(&id3) {
+            tri_valid = false;
+        }
+    }
+
+    if tri_valid {
+        let mut tri = JTri::new();
+        tri.id1 = *n1;
+        tri.id2 = *n2;
+        tri.id3 = *n3;
+
+        return Ok(tri);
+    } else {
+        return Err("This triangle already exists!".to_string());
+    }
+
+}
 
 
 
