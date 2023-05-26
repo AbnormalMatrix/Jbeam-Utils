@@ -542,12 +542,28 @@ fn main() {
                         }
 
                         if ui.button("Delete Node").clicked() {
-                            if node_selected {
+                            if user_selection.len() > 0 {
 
-                                // remove beams connected to node
+                                // remove any beams have the id1 or id2 of the node to be deleted
                                 let mut beams_to_remove = Vec::new();
+                                for node in user_selection.iter() {
+                                    let node_id = nodes[*node].id.clone();
+                                    for (i, beam) in beams.iter().enumerate() {
+                                        if beam.id1 == node_id || beam.id2 == node_id {
+                                            beams_to_remove.push(i);
+                                        }
+                                    }
+                                }
+                                // remove the nodes
+                                for node in user_selection.iter() {
+                                    nodes.remove(*node);
+                                }
+
                                 for (i, beam) in beams.iter().enumerate() {
-                                    if beam.id1 == nodes[node_selected_index].id || beam.id2 == nodes[node_selected_index].id {
+                                    if beam.node1_idx >= nodes.len() {
+                                        beams_to_remove.push(i);
+                                    }
+                                    if beam.node2_idx >= nodes.len() {
                                         beams_to_remove.push(i);
                                     }
                                 }
@@ -555,11 +571,12 @@ fn main() {
                                 for beam in beams_to_remove.iter().rev() {
                                     beams.remove(*beam);
                                 }
-                                
 
-                                nodes.remove(node_selected_index);
-                                node_selected = false;
+
+
+                                user_selection.clear();
                             }
+
                         }
 
                         if ui.button("Mark node for export").clicked() {
