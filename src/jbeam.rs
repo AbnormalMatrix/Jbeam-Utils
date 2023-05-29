@@ -605,11 +605,11 @@ impl JBeam {
     }
 
     pub fn get_3d_object(&self, context: &Context, nodes: &Vec<JNode>) -> Sprites {
-        // let pos1 = nodes[get_node_by_id(self.id1.clone(), nodes).unwrap()].position;
-        // let pos2 = nodes[get_node_by_id(self.id2.clone(), nodes).unwrap()].position;
+        let pos1 = nodes[get_node_by_id(self.id1.clone(), nodes).unwrap()].position;
+        let pos2 = nodes[get_node_by_id(self.id2.clone(), nodes).unwrap()].position;
 
-        let pos1 = nodes[self.node1_idx].position;
-        let pos2 = nodes[self.node2_idx].position;
+        // let pos1 = nodes[self.node1_idx].position;
+        // let pos2 = nodes[self.node2_idx].position;
 
 
         let (x, y, z) = get_midpoint(pos1.0, pos2.0, pos1.1, pos2.1, pos1.2, pos2.2);
