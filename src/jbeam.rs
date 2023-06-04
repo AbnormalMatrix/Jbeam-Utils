@@ -1239,3 +1239,43 @@ pub fn try_select_beam(id1: &String, id2: &String, beams: &Vec<JBeam>) -> Result
     Err(SelectError::NoBeam)
 
 }
+
+pub fn subdivide_beam(beams: &mut Vec<JBeam>, selected_beam: &usize, nodes: &mut Vec<JNode>) {
+
+    // get the positions of the nodes
+
+    let node_1_pos = nodes[get_node_by_id(beams[*selected_beam].id1.clone(), nodes).unwrap()].position;
+    let node_2_pos = nodes[get_node_by_id(beams[*selected_beam].id2.clone(), nodes).unwrap()].position;
+
+    // get the node ids
+
+    let node_1_id = nodes[get_node_by_id(beams[*selected_beam].id1.clone(), nodes).unwrap()].id.clone();
+    let node_2_id = nodes[get_node_by_id(beams[*selected_beam].id2.clone(), nodes).unwrap()].id.clone();
+
+    // get the name of node_1 and add subd to the end
+
+    let new_node_name = format!("{}_subd", nodes[get_node_by_id(beams[*selected_beam].id1.clone(), nodes).unwrap()].id);
+
+    // get the midpoint
+
+    let midpoint_x = (node_1_pos.0 + node_2_pos.0) / 2.0;
+    let midpoint_y = (node_1_pos.1 + node_2_pos.1) / 2.0;
+    let midpoint_z = (node_1_pos.2 + node_2_pos.2) / 2.0;
+
+    let midpoint = (midpoint_x, midpoint_y, midpoint_z);
+
+    let new_node = new_node(nodes, midpoint, new_node_name.clone()).unwrap();
+
+    nodes.push(new_node);
+
+    beams.remove(*selected_beam);
+
+    // create a beam connecting node_1 to new_node
+
+    let new_beam1 = new_beam(nodes, beams, node_1_id.clone(), new_node_name.clone()).unwrap();
+    let new_beam2 = new_beam(nodes, beams, node_2_id.clone(), new_node_name.clone()).unwrap();
+
+    beams.push(new_beam1);
+    beams.push(new_beam2);
+
+}

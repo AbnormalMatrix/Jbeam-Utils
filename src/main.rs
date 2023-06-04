@@ -693,6 +693,20 @@ fn main() {
 
                         }
 
+                        if ui.button("Subdivide Beam").clicked() {
+                            // find a selected beam
+                            let mut selected_beam = None;
+                            for (i, beam) in beams.iter().enumerate() {
+                                if (beam.id1 == new_beam_id1 && beam.id2 == new_beam_id2) || (beam.id1 == new_beam_id2 && beam.id2 == new_beam_id1) {
+                                    selected_beam = Some(i);
+                                }
+                            }
+
+                            if selected_beam.is_some(){
+                                jbeam::subdivide_beam(&mut beams, &selected_beam.unwrap(), &mut nodes);
+                            }
+                        }
+
                         if ui.button("Delete Beam").clicked() {
                             // check if there are any beams with new_beam_id1 and new_beam_id2
                             let mut beam_to_remove = None;
