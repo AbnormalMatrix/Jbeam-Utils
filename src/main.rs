@@ -4,6 +4,7 @@ mod jbeam;
 
 mod main_ui;
 mod import_wizard;
+mod help;
 
 mod export_beams;
 
@@ -154,7 +155,7 @@ fn main() {
 
     let window = Window::new(WindowSettings {
         title: "JBeam Editor".to_string(),
-        max_size: Some((1280, 720)),
+        max_size: Some((1920, 1080)),
         ..Default::default()
     })
     .unwrap();
@@ -165,6 +166,9 @@ fn main() {
 
 
     let mut gui_floating = three_d::GUI::new(&context);
+
+    let mut help_gui = three_d::GUI::new(&context);
+    let mut show_help_gui = false;
 
     let mut show_floating_gui = false;
 
@@ -434,6 +438,14 @@ fn main() {
 
                             }
                         });
+
+                        if ui.button("？HELP ？").clicked() {
+                            if show_help_gui {
+                                show_help_gui = false;
+                            } else {
+                                show_help_gui = true;
+                            }
+                        }
 
                         ui.horizontal(|ui| {
                             ui.label("Editor Mode: ");
@@ -882,7 +894,7 @@ fn main() {
                         if *kind == Key::Num1 {
                             if modifiers.ctrl {
                                 camera.set_view(
-                                    vec3(0.0, 0.0, -100.0),
+                                    vec3(0.0, 0.0, -10.0),
                                     vec3(0.0, 0.0, 1.0),
                                     vec3(0.0, 1.0, 0.0),
                                 );
@@ -892,7 +904,7 @@ fn main() {
 
                             } else {
                                 camera.set_view(
-                                    vec3(0.0, 0.0, 100.0),
+                                    vec3(0.0, 0.0, 10.0),
                                     vec3(0.0, 0.0, -1.0),
                                     vec3(0.0, 1.0, 0.0),
                                 );
@@ -906,7 +918,7 @@ fn main() {
                         if *kind == Key::Num3 {
                             if modifiers.ctrl {
                                 camera.set_view(
-                                    vec3(-100.0, 0.0, 0.0),
+                                    vec3(-10.0, 0.0, 0.0),
                                     vec3(1.0, 0.0, 0.0),
                                     vec3(0.0, 1.0, 0.0),
                                 );
@@ -916,7 +928,7 @@ fn main() {
 
                             } else {
                                 camera.set_view(
-                                    vec3(100.0, 0.0, 0.0),
+                                    vec3(10.0, 0.0, 0.0),
                                     vec3(-1.0, 0.0, 0.0),
                                     vec3(0.0, 1.0, 0.0),
                                 );
@@ -931,7 +943,7 @@ fn main() {
                         if *kind == Key::Num7 {
                             if modifiers.ctrl {
                                 camera.set_view(
-                                    vec3(0.0, 100.0, 0.0),
+                                    vec3(0.0, 10.0, 0.0),
                                     vec3(0.0, -1.0, 0.0),
                                     vec3(1.0, 0.0, 0.0),
                                 );
@@ -940,7 +952,7 @@ fn main() {
                                 ortho_mode = OrthoMode::Bottom;
                             } else {
                                 camera.set_view(
-                                    vec3(0.0, -100.0, 0.0),
+                                    vec3(0.0, -10.0, 0.0),
                                     vec3(0.0, 1.0, 0.0),
                                     vec3(-1.0, 0.0, 0.0),
                                 );
@@ -1460,6 +1472,25 @@ fn main() {
                 FrameOutput::default();
 
             }
+
+            if show_help_gui {
+                help_gui.update(
+                    &mut frame_input.events,
+                    frame_input.accumulated_time,
+                    frame_input.viewport,
+                    frame_input.device_pixel_ratio,
+                    |gui_context| {
+
+                        help::show_help_gui(gui_context);
+                
+                });
+                frame_input
+                .screen()
+                .write(|| help_gui.render());
+
+                FrameOutput::default();
+            }
+
             fender.render_with_material(&fender_material, &camera, &[&light0, &light1]);
 
 
