@@ -581,7 +581,10 @@ fn main() {
                                 }
 
                                 for beam in beams_to_remove.iter().rev() {
-                                    beams.remove(*beam);
+                                    if !(beam > &beams.len()){
+                                        beams.remove(*beam);
+
+                                    }
                                 }
 
 
