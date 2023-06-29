@@ -9,10 +9,12 @@ Installing this project currently requires [Rust's cargo tool-chain](https://www
  2. `cd Jbeam-Utils`
  3. `cargo run --release`
 
+## Usage
+The UI has not been my top priority with this project. Press the help button to see some basic instructions on how to use the program. Currently the only way to load 3D models by putting an OBJ in the assets folder called model.obj. I would like to improve this soon. If you are exporting from Blender you may need to change your model orientation for it to work correctly.
+
 ## TODO:
  - [ ] add the ability to select beams without having to manually select individual nodes
  - [ ] fix jbeam parser
-	 - [ ] parse triangles
 	 - [ ] parse engines
 - [ ] Fix material editor
 - [ ] GUI to load models
