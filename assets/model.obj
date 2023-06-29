@@ -1,6 +1,6 @@
 # Blender 3.5.0
 # www.blender.org
-mtllib fender.mtl
+mtllib model.mtl
 o scintilla_body_offroad
 v -0.604158 0.882755 0.338606
 v -0.593331 0.854845 0.296180
