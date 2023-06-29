@@ -254,8 +254,8 @@ fn main() {
     });
     
 
-    let mut loaded = three_d_asset::io::load(&["assets/fender.obj"]).unwrap();
-    let model = loaded.deserialize("fender.obj").unwrap();
+    let mut loaded = three_d_asset::io::load(&["assets/model.obj"]).unwrap();
+    let model = loaded.deserialize("model.obj").unwrap();
 
     // load the fenders
     
