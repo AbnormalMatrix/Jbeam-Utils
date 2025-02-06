@@ -5,7 +5,7 @@ A set of tools designed to help create vehicles with accurate physics in BeamNG.
 ## Installing
 Installing this project currently requires [Rust's cargo tool-chain](https://www.rust-lang.org/learn/get-started) and should work on both Windows and Linux.
 
- 1. `git clone https://github.com/Skierman/Jbeam-Utils`
+ 1. `git clone https://github.com/AbnormalMatrix/Jbeam-Utils`
  2. `cd Jbeam-Utils`
  3. `cargo run --release`
 
